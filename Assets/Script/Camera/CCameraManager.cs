@@ -38,10 +38,7 @@ public class CCameraManager : MonoBehaviour {
     {
         rotY += m_RotateSpeed * Time.smoothDeltaTime * _dir;
         Quaternion LocalRotation = Quaternion.Euler(rotX, rotY, 0.0f);
-
         transform.rotation = Quaternion.Slerp(transform.rotation, LocalRotation, 100f * Time.smoothDeltaTime);
-     
-        //transform.rotation = LocalRotation;
     }
 
     void FixedUpdate()

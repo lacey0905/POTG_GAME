@@ -30,6 +30,9 @@ public class CPlayerManager : MonoBehaviour {
     public Transform m_FollowTag;
     public CCameraManager m_Camera;
 
+    public CWeaponManager m_Weapon;
+
+
     public void SetCamera(CCameraManager _camera)
     {
         m_Camera = _camera;
@@ -93,8 +96,8 @@ public class CPlayerManager : MonoBehaviour {
         Vector3 playerToMouse = _mousePos - transform.position;
         playerToMouse.y = 0f;
 
-        Quaternion newRotation = Quaternion.LookRotation(playerToMouse);
-        m_Rigidbody.rotation = Quaternion.Slerp(m_Rigidbody.rotation, newRotation, m_fSpeed * 20f * Time.smoothDeltaTime);
+        Quaternion newRotation = Quaternion.LookRotation(playerToMouse.normalized);
+        m_Rigidbody.rotation = Quaternion.Slerp(m_Rigidbody.rotation, newRotation, m_fSpeed * Time.smoothDeltaTime);
     }
 
     // KeyBoard Turn
@@ -106,17 +109,17 @@ public class CPlayerManager : MonoBehaviour {
         Vector3 _Direction = GetStandardDirection(_h, _v);
 
         Quaternion newRotation = Quaternion.LookRotation(_Direction);
-        m_Rigidbody.rotation = Quaternion.Slerp(m_Rigidbody.rotation, newRotation, 0.5f * m_fSpeed * Time.smoothDeltaTime);
+        m_Rigidbody.rotation = Quaternion.Slerp(m_Rigidbody.rotation, newRotation, m_fSpeed * Time.smoothDeltaTime);
     }
 
     void FixedUpdate () {
+        //if(isLocalPlayer){}
         // 이동 입력 받기
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
         // 로컬 플레이어 행동
         Move(h, v);
-        Turn(h, v);
         SetPlayerAnimating(h, v);
 
         // 카메라 회전 키 입력
@@ -128,5 +131,34 @@ public class CPlayerManager : MonoBehaviour {
         {
             m_Camera.SetRotation(1);
         }
+
+
+        // 마우스 우클릭 했을 때
+        if (Input.GetMouseButton(1))
+        {
+            Turn(m_Ray.GetRayPoint());
+            
+            if (Input.GetMouseButtonDown(0))
+            {
+                m_Weapon.Attack();
+                m_Camera.GetComponentInChildren<CCameraShake>().StartShake();
+            }
+        }
+        else
+        {
+            //m_LocalPlayerController.SetSpeed(6f);
+            Turn(h, v);
+
+            //Cursor.visible = true;
+
+            //// 카메라 에임 모드 해제
+            //m_CameraManager.SetDisAimMode();
+            //m_LocalPlayerController.SetAimModeDis();
+
+            //// 카메라 회전 키 입력
+            //if (Input.GetKey("e")) { m_CameraManager.SetRotation(-1); }
+            //else if (Input.GetKey("q")) { m_CameraManager.SetRotation(1); }
+        }
+
     }
 }
