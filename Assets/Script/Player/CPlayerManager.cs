@@ -97,7 +97,8 @@ public class CPlayerManager : MonoBehaviour {
         playerToMouse.y = 0f;
 
         Quaternion newRotation = Quaternion.LookRotation(playerToMouse.normalized);
-        m_Rigidbody.rotation = Quaternion.Slerp(m_Rigidbody.rotation, newRotation, m_fSpeed * Time.smoothDeltaTime);
+        //m_Rigidbody.rotation = Quaternion.Slerp(m_Rigidbody.rotation, newRotation, m_fSpeed * Time.smoothDeltaTime);
+        m_Rigidbody.MoveRotation(newRotation);
     }
 
     // KeyBoard Turn
@@ -111,7 +112,14 @@ public class CPlayerManager : MonoBehaviour {
         Quaternion newRotation = Quaternion.LookRotation(_Direction);
         m_Rigidbody.rotation = Quaternion.Slerp(m_Rigidbody.rotation, newRotation, m_fSpeed * Time.smoothDeltaTime);
     }
-
+    IEnumerator ShutWait()
+    {
+        isShut = false;
+        yield return new WaitForSeconds(0.2f);
+        m_Weapon.Attack();
+        isShut = true;
+    }
+    bool isShut = true;
     void FixedUpdate () {
         //if(isLocalPlayer){}
         // 이동 입력 받기
@@ -132,20 +140,21 @@ public class CPlayerManager : MonoBehaviour {
             m_Camera.SetRotation(1);
         }
 
-
         // 마우스 우클릭 했을 때
-        if (Input.GetMouseButton(1))
+        if (Input.GetMouseButton(0))
         {
             Turn(m_Ray.GetRayPoint());
-            
-            if (Input.GetMouseButtonDown(0))
+            if (isShut)
             {
-                m_Weapon.Attack();
+                StartCoroutine("ShutWait");
+                
+                m_PlayerAnim.SetBool("IsAttack", true);
                 m_Camera.GetComponentInChildren<CCameraShake>().StartShake();
             }
         }
         else
         {
+            m_PlayerAnim.SetBool("IsAttack", false);
             //m_LocalPlayerController.SetSpeed(6f);
             Turn(h, v);
 

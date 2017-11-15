@@ -21,7 +21,7 @@ public class CAttackBullet : MonoBehaviour {
 
     IEnumerator Destroy()
     {
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(1.0f);
         Destroy(this.gameObject);
     }
 

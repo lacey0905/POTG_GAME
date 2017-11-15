@@ -98,7 +98,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81035bad41cb016488f7748950e9f665, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_fBulletSpeed: 1000
+  m_fBulletSpeed: 2000
   eft: {fileID: 198221337777600620}
 --- !u!198 &198221337777600620
 ParticleSystem:
