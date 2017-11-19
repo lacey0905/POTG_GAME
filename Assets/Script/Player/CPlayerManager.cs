@@ -24,13 +24,79 @@ public class CPlayerManager : NetworkBehaviour {
     public Transform m_FollowTag;
     public CWeaponManager m_Weapon;
 
+    CCameraManager m_CameraControl;
+
+
     CPlayerControl m_Control;
     Animator m_PlayerAnim;
+
+
+    public void SetCameraControl(CCameraManager _camera)
+    {
+
+        m_CameraControl = _camera;
+    }
+
+    public Vector3 GetRayPoint()
+    {
+        Vector3 m_RayPoint = Vector3.zero;
+
+        // 마우스 포인터 받기
+        Ray camRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        // 충돌 확인
+        RaycastHit floorHit;
+
+        //바닥에 충돌하면 실행
+        if (Physics.Raycast(camRay, out floorHit, 100f, m_iFloorMask))
+        {
+            m_RayPoint = floorHit.point;
+        }
+        return m_RayPoint;
+    }
+
+    [ClientCallback]
+    void FixedUpdate()
+    {
+        if (!isLocalPlayer)
+        {
+            return;
+        }
+        if (m_CameraControl != null)
+        {
+            m_CameraControl.SetPosition(transform.position);
+            m_CameraControl.SetAimMode(GetRayPoint(), transform.position);
+            if (Input.GetKey("e"))
+            {
+                m_CameraControl.SetRotation(-1);
+            }
+            else if (Input.GetKey("q"))
+            {
+                m_CameraControl.SetRotation(1);
+            }
+        }
+
+        float h = Input.GetAxisRaw("Horizontal");
+        float v = Input.GetAxisRaw("Vertical");
+
+        Movement(h, v);
+        Turning(GetRayPoint());
+        SetPlayerAnimating(h, v);
+
+        if (Input.GetMouseButton(0))
+        {
+            CmdAttack();
+        }
+    }
+
+    // 레이캐스트 충돌 평면
+    int m_iFloorMask;
 
     void Awake()
     {
         m_Control = GetComponent<CPlayerControl>();
         m_PlayerAnim = GetComponent<Animator>();
+        m_iFloorMask = LayerMask.GetMask("RayFloor");
     }
 
     public void Movement(float _h, float _v)
@@ -47,6 +113,7 @@ public class CPlayerManager : NetworkBehaviour {
         if (isLocalPlayer)
         {
             m_IsLocalPlayer = true;
+            m_Weapon.SetLaser();
         }
         Setup(1, 100, "ID");
         CGameManager.m_NetworkPlayerList.Add(this);
@@ -73,9 +140,26 @@ public class CPlayerManager : NetworkBehaviour {
     }
     bool isShut = true;
 
-    public void Attack()
+    [Command]
+    public void CmdAttack()
     {
-        if (isShut) {
+
+        if (!isClient)
+        {
+            if (isShut)
+            {
+                StartCoroutine(ShutWait());
+            }
+        }
+
+        RpcFire();
+    }
+
+    [ClientRpc]
+    public void RpcFire()
+    {
+        if (isShut)
+        {
             StartCoroutine(ShutWait());
         }
     }

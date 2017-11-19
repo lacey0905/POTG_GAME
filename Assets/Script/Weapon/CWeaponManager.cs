@@ -9,6 +9,11 @@ public class CWeaponManager : MonoBehaviour {
 
     void Start()
     {
+        
+    }
+
+    public void SetLaser()
+    {
         m_Laser.SetActive(true);
     }
 
