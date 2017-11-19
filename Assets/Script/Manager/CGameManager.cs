@@ -32,6 +32,7 @@ public class CGameManager : MonoBehaviour {
                 if (p.m_IsLocalPlayer == true)
                 {
                     m_LocalPlayer = p;
+                    break;
                 }
             }
             yield return new WaitForSeconds(1.0f);
@@ -77,6 +78,12 @@ public class CGameManager : MonoBehaviour {
             m_LocalPlayer.Movement(h, v);
             m_LocalPlayer.Turning(GetRayPoint());
             m_LocalPlayer.SetPlayerAnimating(h, v);
+
+            if (Input.GetMouseButton(0))
+            {
+                m_LocalPlayer.Attack();
+            }
+
         }
     }
 }

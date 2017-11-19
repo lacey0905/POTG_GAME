@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public struct CPlayerData
 {
@@ -16,7 +17,7 @@ public struct CPlayerData
     }
 }
 
-public class CPlayerManager : MonoBehaviour {
+public class CPlayerManager : NetworkBehaviour {
 
     public CPlayerData Data;                // 캐릭터 정보
     public bool m_IsLocalPlayer;            // 로컬 캐릭터 확인
@@ -43,7 +44,10 @@ public class CPlayerManager : MonoBehaviour {
     }
 
     void Start () {
-        //m_LocalPlayer = true;
+        if (isLocalPlayer)
+        {
+            m_IsLocalPlayer = true;
+        }
         Setup(1, 100, "ID");
         CGameManager.m_NetworkPlayerList.Add(this);
     }
@@ -59,7 +63,7 @@ public class CPlayerManager : MonoBehaviour {
         bool walking = h != 0f || v != 0f;
         m_PlayerAnim.SetBool("IsWalking", walking);
     }
-    
+
     IEnumerator ShutWait()
     {
         isShut = false;
@@ -68,4 +72,11 @@ public class CPlayerManager : MonoBehaviour {
         isShut = true;
     }
     bool isShut = true;
+
+    public void Attack()
+    {
+        if (isShut) {
+            StartCoroutine(ShutWait());
+        }
+    }
 }

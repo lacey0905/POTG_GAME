@@ -5,7 +5,12 @@ using UnityEngine;
 public class CWeaponManager : MonoBehaviour {
 
     public GameObject m_Bullet;
-    
+    public GameObject m_Laser;
+
+    void Start()
+    {
+        m_Laser.SetActive(true);
+    }
 
     public void Attack()
     {
