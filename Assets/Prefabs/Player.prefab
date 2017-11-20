@@ -856,10 +856,11 @@ GameObject:
   - component: {fileID: 54707362139913196}
   - component: {fileID: 65557111185652808}
   - component: {fileID: 114882953032948328}
-  - component: {fileID: 114944259989040380}
+  - component: {fileID: 114761256688896502}
+  - component: {fileID: 114996061569895206}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2440,9 +2441,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32730bd0282c82945bffcf1241864c6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_IsLocalPlayer: 0
+  HP: 100
   m_FollowTag: {fileID: 4412295967060856}
   m_Weapon: {fileID: 114440017293059838}
+--- !u!114 &114761256688896502
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1875623131770294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8de626070f18c6c4d8d19df261b5fb60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114821815267909228
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2455,7 +2467,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_fSpeed: 30
-  Tspeed: 12
+  Tspeed: 100
 --- !u!114 &114840510782774980
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2499,7 +2511,7 @@ MonoBehaviour:
     i15: 152
   m_ServerOnly: 0
   m_LocalPlayerAuthority: 1
---- !u!114 &114944259989040380
+--- !u!114 &114996061569895206
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -2512,8 +2524,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TransformSyncMode: 3
   m_SendInterval: 0.1
-  m_SyncRotationAxis: 2
-  m_RotationSyncCompression: 0
+  m_SyncRotationAxis: 7
+  m_RotationSyncCompression: 2
   m_SyncSpin: 1
   m_MovementTheshold: 0.001
   m_VelocityThreshold: 0.0001

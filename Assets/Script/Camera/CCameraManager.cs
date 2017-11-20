@@ -5,10 +5,8 @@ using UnityEngine;
 
 public class CCameraManager : MonoBehaviour {
 
-
     public Transform m_Aim;
 
-    //public Transform m_Target;              // 카메라가 따라다닐 타겟 지정
     public float m_fSmoothing = 10.0f;      // 따라다닐 때 부드러운 정도
     public float m_RotateSpeed = 100.0f;    // 카메라 회전 속도
 
@@ -17,7 +15,6 @@ public class CCameraManager : MonoBehaviour {
     float rotX = 0.0f;                      // 회전 X값
     float rotY = 0.0f;                      // 회전 Y값
 
-
     void Start()
     {
         // 카메라 회전 각도 저장
@@ -25,6 +22,7 @@ public class CCameraManager : MonoBehaviour {
         rotY = rot.y;
         rotX = rot.x;
 
+        CGameManager.m_CameraManager = this;
     }
 
     public void SetAimMode(Vector3 _rayPoint, Vector3 _targetPos)
@@ -41,14 +39,7 @@ public class CCameraManager : MonoBehaviour {
     }
 
     public float aimspeed = 3.5f;
-
-
-
-    //public void SetFollowTarget(Transform _target)
-    //{
-    //    m_Target = _target;
-    //}
-
+   
     // 카메라 위치 갱신
     public void SetPosition(Vector3 _targetPos)
     {
@@ -64,6 +55,4 @@ public class CCameraManager : MonoBehaviour {
         Quaternion LocalRotation = Quaternion.Euler(rotX, rotY, 0.0f);
         transform.rotation = Quaternion.Slerp(transform.rotation, LocalRotation, 100f * Time.smoothDeltaTime);
     }
-
-   
 }

@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
+
 public struct CPlayerData
 {
-    public int Index;
+   
+    public int Score;
+
     public int Health;
+
     public string Name;
 
-    public void DataSetup(int _index, int _health, string _name)
+    public void DataSetup(int _score, int _health, string _name)
     {
-        this.Index = _index;
+        this.Score = _score;
         this.Health = _health;
         this.Name = _name;
     }
@@ -19,68 +23,95 @@ public struct CPlayerData
 
 public class CPlayerManager : NetworkBehaviour {
 
+
+    [SyncVar]
+    public int HP;
+
     public CPlayerData Data;                // 캐릭터 정보
-    public bool m_IsLocalPlayer;            // 로컬 캐릭터 확인
+
     public Transform m_FollowTag;
     public CWeaponManager m_Weapon;
 
-    CCameraManager m_CameraControl;
-
-
+    CCameraManager m_Camera;
+    CMakeRay m_Ray;
     CPlayerControl m_Control;
     Animator m_PlayerAnim;
-
-
-    public void SetCameraControl(CCameraManager _camera)
+    
+    void Awake()
     {
-
-        m_CameraControl = _camera;
+        m_Control = GetComponent<CPlayerControl>();
+        m_PlayerAnim = GetComponent<Animator>();
+        m_Ray = GetComponent<CMakeRay>();
     }
 
-    public Vector3 GetRayPoint()
+    void Start()
     {
-        Vector3 m_RayPoint = Vector3.zero;
-
-        // 마우스 포인터 받기
-        Ray camRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-        // 충돌 확인
-        RaycastHit floorHit;
-
-        //바닥에 충돌하면 실행
-        if (Physics.Raycast(camRay, out floorHit, 100f, m_iFloorMask))
+        if (isLocalPlayer)
         {
-            m_RayPoint = floorHit.point;
+            CGameManager.m_CameraTargetPlayer = this;
+            m_Weapon.SetLaser();
         }
-        return m_RayPoint;
+        CGameManager.m_NetworkPlayerList.Add(this);
+
+
+        Setup(0, 100, "Player");
     }
 
-    [ClientCallback]
+ 
+    public void SetDecreaseHealth(int _damage)
+    {
+        if (!isServer)
+            return;
+
+        if (HP >= 0)
+        {
+            HP -= _damage;
+        }
+        else {
+            HP = 0;
+        }
+    }
+
     void FixedUpdate()
     {
-        if (!isLocalPlayer)
+        if (HP <= 0)
         {
-            return;
+            Destroy(this.gameObject);
         }
-        if (m_CameraControl != null)
+
+        if (isLocalPlayer)
         {
-            m_CameraControl.SetPosition(transform.position);
-            m_CameraControl.SetAimMode(GetRayPoint(), transform.position);
+            Debug.Log("내거 : " + HP);
+        }
+        else
+        {
+            Debug.Log("남의 거 : " + HP);
+        }
+
+        if (!isLocalPlayer) return;
+
+        if (m_Camera != null)
+        {
+            m_Camera.SetAimMode(m_Ray.GetRayPoint(), transform.position);
             if (Input.GetKey("e"))
             {
-                m_CameraControl.SetRotation(-1);
+                m_Camera.SetRotation(-1);
             }
             else if (Input.GetKey("q"))
             {
-                m_CameraControl.SetRotation(1);
+                m_Camera.SetRotation(1);
             }
+        }
+        else
+        {
+            m_Camera = CGameManager.m_CameraManager;
         }
 
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
         Movement(h, v);
-        Turning(GetRayPoint());
+        Turning(m_Ray.GetRayPoint());
         SetPlayerAnimating(h, v);
 
         if (Input.GetMouseButton(0))
@@ -89,15 +120,7 @@ public class CPlayerManager : NetworkBehaviour {
         }
     }
 
-    // 레이캐스트 충돌 평면
-    int m_iFloorMask;
-
-    void Awake()
-    {
-        m_Control = GetComponent<CPlayerControl>();
-        m_PlayerAnim = GetComponent<Animator>();
-        m_iFloorMask = LayerMask.GetMask("RayFloor");
-    }
+    
 
     public void Movement(float _h, float _v)
     {
@@ -109,20 +132,10 @@ public class CPlayerManager : NetworkBehaviour {
         m_Control.Turn(_ray);
     }
 
-    void Start () {
-        if (isLocalPlayer)
-        {
-            m_IsLocalPlayer = true;
-            m_Weapon.SetLaser();
-        }
-        Setup(1, 100, "ID");
-        CGameManager.m_NetworkPlayerList.Add(this);
-    }
-
-    public void Setup(int _index, int _health, string _name)
+    public void Setup(int _score, int _health, string _name)
     {
         Data = new CPlayerData();
-        Data.DataSetup(_index, _health, _name);
+        Data.DataSetup(_score, _health, _name);
     }
 
     public void SetPlayerAnimating(float h, float v)
@@ -143,7 +156,6 @@ public class CPlayerManager : NetworkBehaviour {
     [Command]
     public void CmdAttack()
     {
-
         if (!isClient)
         {
             if (isShut)
