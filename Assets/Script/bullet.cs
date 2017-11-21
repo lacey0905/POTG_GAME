@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class bullet : MonoBehaviour {
+public class bullet : NetworkBehaviour {
 
     public float Speed;
 
