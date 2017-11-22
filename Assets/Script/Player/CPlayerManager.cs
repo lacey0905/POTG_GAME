@@ -1,16 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
 
 
 public struct CPlayerData
 {
-   
     public int Score;
-
     public int Health;
-
     public string Name;
 
     public void DataSetup(int _score, int _health, string _name)
@@ -21,10 +17,9 @@ public struct CPlayerData
     }
 }
 
-public class CPlayerManager : NetworkBehaviour {
+public class CPlayerManager : MonoBehaviour {
 
-
-    [SyncVar]
+    //[SyncVar]
     public int HP;
 
     public CPlayerData Data;                // 캐릭터 정보
@@ -46,11 +41,12 @@ public class CPlayerManager : NetworkBehaviour {
 
     void Start()
     {
-        if (isLocalPlayer)
-        {
-            CGameManager.m_CameraTargetPlayer = this;
-            m_Weapon.SetLaser();
-        }
+        //if (isLocalPlayer)
+        //{
+            
+        //}
+        CGameManager.m_CameraTargetPlayer = this;
+        m_Weapon.SetLaser();
         CGameManager.m_NetworkPlayerList.Add(this);
 
 
@@ -60,8 +56,8 @@ public class CPlayerManager : NetworkBehaviour {
  
     public void SetDecreaseHealth(int _damage)
     {
-        if (!isServer)
-            return;
+        //if (!isServer)
+        //    return;
 
         if (HP >= 0)
         {
@@ -79,16 +75,7 @@ public class CPlayerManager : NetworkBehaviour {
             Destroy(this.gameObject);
         }
 
-        if (isLocalPlayer)
-        {
-            Debug.Log("내거 : " + HP);
-        }
-        else
-        {
-            Debug.Log("남의 거 : " + HP);
-        }
-
-        if (!isLocalPlayer) return;
+        //if (!isLocalPlayer) return;
 
         if (m_Camera != null)
         {
@@ -112,7 +99,7 @@ public class CPlayerManager : NetworkBehaviour {
 
         Movement(h, v);
         Turning(m_Ray.GetRayPoint());
-        SetPlayerAnimating(h, v);
+        //SetPlayerAnimating(h, v);
 
         if (Input.GetMouseButton(0))
         {
@@ -138,41 +125,47 @@ public class CPlayerManager : NetworkBehaviour {
         Data.DataSetup(_score, _health, _name);
     }
 
-    public void SetPlayerAnimating(float h, float v)
-    {
-        bool walking = h != 0f || v != 0f;
-        m_PlayerAnim.SetBool("IsWalking", walking);
-    }
+    //public void SetPlayerAnimating(float h, float v)
+    //{
+    //    bool walking = h != 0f || v != 0f;
+    //    m_PlayerAnim.SetBool("IsWalking", walking);
+    //}
 
     IEnumerator ShutWait()
     {
         isShut = false;
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         m_Weapon.Attack();
         isShut = true;
     }
     bool isShut = true;
 
-    [Command]
+    //[Command]
     public void CmdAttack()
     {
-        if (!isClient)
-        {
-            if (isShut)
-            {
-                StartCoroutine(ShutWait());
-            }
-        }
+        //if (!isClient)
+        //{
+        //    if (isShut)
+        //    {
+        //        StartCoroutine(ShutWait());
+        //    }
+        //}
 
-        RpcFire();
-    }
+        //RpcFire();
 
-    [ClientRpc]
-    public void RpcFire()
-    {
         if (isShut)
         {
             StartCoroutine(ShutWait());
         }
+
     }
+
+    //[ClientRpc]
+    //public void RpcFire()
+    //{
+    //    if (isShut)
+    //    {
+    //        StartCoroutine(ShutWait());
+    //    }
+    //}
 }

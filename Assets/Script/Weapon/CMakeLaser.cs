@@ -28,7 +28,7 @@ public class CMakeLaser : MonoBehaviour {
         }
         else
         {
-            m_Laser.SetPosition(1, transform.position + transform.forward * 50f);
+            m_Laser.SetPosition(1, transform.position + transform.forward * 30f);
         }
 
     }
