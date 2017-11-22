@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public struct CPlayerData
 {
     public int Score;
@@ -19,23 +18,23 @@ public struct CPlayerData
 
 public class CPlayerManager : MonoBehaviour {
 
-    //[SyncVar]
-    public int HP;
-
     public CPlayerData Data;                // 캐릭터 정보
 
     public Transform m_FollowTag;
     public CWeaponManager m_Weapon;
 
+    bool isFire = false;                    // 공격 키 눌렀는지 여부
+    bool isShut = true;
+
     CCameraManager m_Camera;
     CMakeRay m_Ray;
     CPlayerControl m_Control;
-    Animator m_PlayerAnim;
+    CPlayerAnim m_AnimControl;
     
     void Awake()
     {
         m_Control = GetComponent<CPlayerControl>();
-        m_PlayerAnim = GetComponent<Animator>();
+        m_AnimControl = GetComponent<CPlayerAnim>();
         m_Ray = GetComponent<CMakeRay>();
     }
 
@@ -43,12 +42,17 @@ public class CPlayerManager : MonoBehaviour {
     {
         //if (isLocalPlayer)
         //{
-            
+
         //}
+
+        // 자신이 처음 스폰 되거나, 리스폰 되었을 때 카메라가 자신을 따라가게 함
         CGameManager.m_CameraTargetPlayer = this;
-        m_Weapon.SetLaser();
+
+        // 캐릭터가 생성되면 게임 매니저의 플레이어 리스트에 넣음
         CGameManager.m_NetworkPlayerList.Add(this);
 
+        // 레이저를 활성화 함
+        m_Weapon.SetLaser();
 
         Setup(0, 100, "Player");
     }
@@ -59,21 +63,22 @@ public class CPlayerManager : MonoBehaviour {
         //if (!isServer)
         //    return;
 
-        if (HP >= 0)
-        {
-            HP -= _damage;
-        }
-        else {
-            HP = 0;
-        }
     }
 
     void FixedUpdate()
     {
-        if (HP <= 0)
+        // 공격 버튼 입력
+        isFire = Input.GetMouseButton(0);   
+
+        // 공격 버튼 활성화 시 행동
+        if (isFire)
         {
-            Destroy(this.gameObject);
+            CmdAttack();
         }
+
+        // 공격 버튼을 눌렀을 경우 애니메이션
+        m_AnimControl.SetShooting(isFire);
+
 
         //if (!isLocalPlayer) return;
 
@@ -94,24 +99,22 @@ public class CPlayerManager : MonoBehaviour {
             m_Camera = CGameManager.m_CameraManager;
         }
 
+        // 이동 입력
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
+        // 캐릭터 이동
         Movement(h, v);
+
+        // 캐릭터 회전
         Turning(m_Ray.GetRayPoint());
-        //SetPlayerAnimating(h, v);
-
-        if (Input.GetMouseButton(0))
-        {
-            CmdAttack();
-        }
     }
-
-    
 
     public void Movement(float _h, float _v)
     {
+        bool _isRun = _h != 0f || _v != 0f;
         m_Control.Move(_h, _v);
+        m_AnimControl.SetRunning(_isRun);
     }
 
     public void Turning(Vector3 _ray)
@@ -125,12 +128,6 @@ public class CPlayerManager : MonoBehaviour {
         Data.DataSetup(_score, _health, _name);
     }
 
-    //public void SetPlayerAnimating(float h, float v)
-    //{
-    //    bool walking = h != 0f || v != 0f;
-    //    m_PlayerAnim.SetBool("IsWalking", walking);
-    //}
-
     IEnumerator ShutWait()
     {
         isShut = false;
@@ -138,7 +135,7 @@ public class CPlayerManager : MonoBehaviour {
         m_Weapon.Attack();
         isShut = true;
     }
-    bool isShut = true;
+   
 
     //[Command]
     public void CmdAttack()
