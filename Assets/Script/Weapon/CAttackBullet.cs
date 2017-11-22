@@ -7,17 +7,23 @@ public class CAttackBullet : MonoBehaviour {
     public float m_fBulletSpeed;
     Rigidbody m_Rigidbody;
 
-    public ParticleSystem eft;
-
-
 	void Start () {
         m_Rigidbody = GetComponent<Rigidbody>();
-        eft.Emit(1);
         StartCoroutine("Destroy");
     }
 	void FixedUpdate () {
         m_Rigidbody.AddForce(transform.forward * m_fBulletSpeed);
     }
+
+
+    void OnTriggerEnter(Collider _col)
+    {
+        if (_col)
+        {
+            Destroy(this.gameObject);
+        }
+    }
+
 
     IEnumerator Destroy()
     {

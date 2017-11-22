@@ -22,7 +22,6 @@ GameObject:
   - component: {fileID: 198281161535320878}
   - component: {fileID: 199043474619747312}
   - component: {fileID: 114837841337504914}
-  - component: {fileID: 114428412053842928}
   - component: {fileID: 114869423900503282}
   m_Layer: 0
   m_Name: BulletImpactStoneEffect
@@ -147,18 +146,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1437360425633224}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114428412053842928
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1155548844051154}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a3234ea1588027d4d8aa4f019c5e3981, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Speed: 0
 --- !u!114 &114837841337504914
 MonoBehaviour:
   m_ObjectHideFlags: 1

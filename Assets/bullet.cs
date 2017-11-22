@@ -4,17 +4,11 @@ using UnityEngine;
 
 public class bullet : MonoBehaviour {
 
-    public float Speed;
-
-    //public GameObject m_effect;
-
+    public float m_fSpeed;
 
     void Start () {
-        GetComponent<Rigidbody>().AddForce(transform.forward * Speed);
-        //StartCoroutine("Bullet_Destroy");
+        GetComponent<Rigidbody>().AddForce(transform.forward * m_fSpeed);
     }
-
-
     public void SetDestroy() {
         Destroy(this.gameObject);
     }
@@ -23,6 +17,8 @@ public class bullet : MonoBehaviour {
     {
         //this.transform.localScale += new Vector3(0.0f, 0.0f, 0.3f);
     }
+
+    
 
     //void OnTriggerEnter(Collider _col)
     //{
@@ -44,13 +40,5 @@ public class bullet : MonoBehaviour {
         yield return new WaitForSeconds(0.5f);
         Destroy(this.gameObject);
     }
-
-
-
-    void OnParticleCollision(GameObject other)
-    {
-        Debug.Log(other.name);
-    }
-
 
 }

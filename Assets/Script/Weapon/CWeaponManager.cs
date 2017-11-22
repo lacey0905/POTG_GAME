@@ -22,7 +22,7 @@ public class CWeaponManager : MonoBehaviour {
         m_Laser.SetActive(true);
     }
 
-    public void Attack()
+    public void Attack(bool _shut)
     {
 
         RaycastHit _hit;
@@ -32,18 +32,20 @@ public class CWeaponManager : MonoBehaviour {
             if (_hit.collider)
             {
                 //Debug.Log(_hit.point);
+                SpawnDecal(_hit, effect);
             }
         }
 
+
         GameObject _Bullet = Instantiate(Tracer, this.transform.position, Quaternion.identity) as GameObject;
         _Bullet.transform.rotation = this.transform.rotation;
-        SpawnDecal(_hit, effect);
+
+        //_Bullet.transform.parent = transform;
     }
 
     void SpawnDecal(RaycastHit hit, GameObject prefab)
     {
-        GameObject spawnedDecal = GameObject.Instantiate(prefab, hit.point, Quaternion.LookRotation(hit.normal));
-        //spawnedDecal.transform.SetParent(hit.collider.transform);
+        GameObject spawnedDecal = Instantiate(prefab, hit.point, Quaternion.LookRotation(hit.normal)) as GameObject;
+        spawnedDecal.transform.SetParent(hit.collider.transform);
     }
-
 }

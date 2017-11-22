@@ -132,7 +132,7 @@ public class CPlayerManager : MonoBehaviour {
     {
         isShut = false;
         yield return new WaitForSeconds(0.1f);
-        m_Weapon.Attack();
+        m_Weapon.Attack(isFire);
         isShut = true;
     }
    

@@ -5,7 +5,8 @@ using UnityEngine;
 public class CPlayerControl : MonoBehaviour {
 
     Rigidbody m_Rigidbody;
-    public float m_fSpeed = 5.0f;
+    public float m_fMoveSpeed;
+    public float m_fTurnSpeed;
 
     void Awake()
     {
@@ -17,7 +18,7 @@ public class CPlayerControl : MonoBehaviour {
         if (_h == 0 && _v == 0) return;
 
         Vector3 _Direction = GetStandardDirection(_h, _v);
-        Vector3 _movePos = transform.position + (_Direction * Time.smoothDeltaTime * m_fSpeed);
+        Vector3 _movePos = transform.position + (_Direction * Time.smoothDeltaTime * m_fMoveSpeed);
         m_Rigidbody.MovePosition(_movePos);
     }
 
@@ -29,12 +30,8 @@ public class CPlayerControl : MonoBehaviour {
         playerToMouse.y = 0f;
 
         Quaternion newRotation = Quaternion.LookRotation(playerToMouse.normalized);
-        m_Rigidbody.rotation = Quaternion.Slerp(transform.rotation, newRotation, Tspeed * Time.smoothDeltaTime);
-
-        //m_Rigidbody.MoveRotation(newRotation);
+        m_Rigidbody.rotation = Quaternion.Slerp(transform.rotation, newRotation, m_fTurnSpeed * Time.smoothDeltaTime);
     }
-
-    public float Tspeed;
 
     Vector3 GetStandardDirection(float _h, float _v)
     {

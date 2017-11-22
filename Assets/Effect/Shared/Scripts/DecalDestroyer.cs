@@ -6,7 +6,12 @@ public class DecalDestroyer : MonoBehaviour {
 
 	public float lifeTime = 5.0f;
 
-	private IEnumerator Start()
+    void Start()
+    {
+        StartCoroutine(End());
+    }
+
+	private IEnumerator End()
 	{
 		yield return new WaitForSeconds(lifeTime);
 		Destroy(gameObject);
