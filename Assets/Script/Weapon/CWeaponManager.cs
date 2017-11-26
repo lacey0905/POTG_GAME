@@ -11,6 +11,8 @@ public class CWeaponManager : MonoBehaviour {
 
     public GameObject Tracer;
 
+    public GameObject m_ShutEffect;
+
     public List<GameObject> m_BulletList = new List<GameObject>();
 
     public int b_count = 0;
@@ -37,8 +39,15 @@ public class CWeaponManager : MonoBehaviour {
         m_Laser.SetActive(true);
     }
 
+    public void NoneAttack()
+    {
+        m_ShutEffect.transform.localScale = new Vector3(0f, 0f, 0f);
+
+    }
     public void Attack(bool _shut)
     {
+
+        m_ShutEffect.transform.localScale = new Vector3(6f, 6f, 6f);
 
         RaycastHit _hit;
 

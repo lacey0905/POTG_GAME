@@ -75,6 +75,9 @@ public class CPlayerManager : MonoBehaviour {
         {
             CmdAttack();
         }
+        else {
+            m_Weapon.NoneAttack();
+        }
       
 
         // 공격 버튼을 눌렀을 경우 애니메이션
