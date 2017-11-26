@@ -20,7 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4554303778449004}
   - component: {fileID: 96009407452297250}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: TracerBullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -38,10 +38,9 @@ GameObject:
   - component: {fileID: 65961263545498808}
   - component: {fileID: 54848665934841710}
   - component: {fileID: 114770015271937960}
-  - component: {fileID: 114258198779179210}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Bullet_A
-  m_TagString: Untagged
+  m_TagString: object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -55,7 +54,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4791723222964950}
   - component: {fileID: 108775788334285330}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Point light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -259,17 +258,6 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!114 &114258198779179210
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1407674743483348}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 005329f4b984cf04d97b9c975794f1a4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &114770015271937960
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -281,4 +269,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81035bad41cb016488f7748950e9f665, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_fBulletSpeed: 2000
+  m_fBulletSpeed: 3000

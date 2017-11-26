@@ -6,19 +6,25 @@ public class bullet : MonoBehaviour {
 
     public float m_fSpeed;
 
-    void Start () {
-        GetComponent<Rigidbody>().AddForce(transform.forward * m_fSpeed);
+    void Start ()
+    {
+        //GetComponent<Rigidbody>().AddForce(transform.forward * m_fSpeed);
     }
-    public void SetDestroy() {
+    public void SetDestroy()
+    {
         Destroy(this.gameObject);
     }
+
+    public void SetAddForce(Vector3 _hit)
+    {
+        Vector3.MoveTowards(transform.position, _hit, 30f * Time.smoothDeltaTime);
+    }
+
 
     void Update()
     {
         //this.transform.localScale += new Vector3(0.0f, 0.0f, 0.3f);
     }
-
-    
 
     //void OnTriggerEnter(Collider _col)
     //{

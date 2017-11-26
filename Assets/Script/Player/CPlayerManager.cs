@@ -68,13 +68,14 @@ public class CPlayerManager : MonoBehaviour {
     void FixedUpdate()
     {
         // 공격 버튼 입력
-        isFire = Input.GetMouseButton(0);   
+        isFire = Input.GetMouseButton(0);
 
         // 공격 버튼 활성화 시 행동
         if (isFire)
         {
             CmdAttack();
         }
+      
 
         // 공격 버튼을 눌렀을 경우 애니메이션
         m_AnimControl.SetShooting(isFire);

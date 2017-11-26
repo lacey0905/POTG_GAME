@@ -9,26 +9,59 @@ public class CAttackBullet : MonoBehaviour {
 
 	void Start () {
         m_Rigidbody = GetComponent<Rigidbody>();
-        StartCoroutine("Destroy");
-    }
-	void FixedUpdate () {
-        m_Rigidbody.AddForce(transform.forward * m_fBulletSpeed);
+        
+        //GetComponent<Rigidbody>().AddForce(transform.forward * m_fBulletSpeed);
     }
 
+    Vector3 target = Vector3.zero;
+
+	void FixedUpdate ()
+    {
+        //bool temp = Mathf.Abs(target.z) >= Mathf.Abs(transform.position.z);
+        //if (temp)
+        //{
+        //    return;
+        //}
+
+        //transform.position = Vector3.Lerp(transform.position, transform.position + target.normalized, m_fBulletSpeed * Time.smoothDeltaTime);
+
+        transform.position = Vector3.MoveTowards(transform.position, target, 120f * Time.smoothDeltaTime);
+
+    }
+
+
+    public void SetAddForce(Vector3 _hit)
+    {
+        target = _hit;
+    }
 
     void OnTriggerEnter(Collider _col)
     {
-        if (_col)
+
+        if (_col.tag != "object")
         {
-            Destroy(this.gameObject);
+            this.gameObject.SetActive(false);
+            transform.position = transform.parent.position;
+            transform.rotation = transform.parent.rotation;
         }
     }
 
-
-    IEnumerator Destroy()
+    public IEnumerator Destroy()
     {
-        yield return new WaitForSeconds(1.0f);
-        Destroy(this.gameObject);
+        yield return new WaitForSeconds(2.0f);
+        this.gameObject.SetActive(false);
+    }
+
+    public void DestroyBullet()
+    {
+        StartCoroutine(Destroy());
+    }
+
+
+    public void Reset()
+    {
+        transform.position = transform.parent.position;
+        transform.rotation = transform.parent.rotation;
     }
 
 }

@@ -11,10 +11,25 @@ public class CWeaponManager : MonoBehaviour {
 
     public GameObject Tracer;
 
+    public List<GameObject> m_BulletList = new List<GameObject>();
+
+    public int b_count = 0;
+
+    public int max = 10;
+
 
     void Start()
     {
-        
+        for (int i = 0; i < 10; i++)
+        {
+            GameObject _Bullet = Instantiate(Tracer, this.transform.position, Quaternion.identity) as GameObject;
+            _Bullet.transform.rotation = this.transform.rotation;
+            _Bullet.transform.parent = this.transform;
+
+            m_BulletList.Add(_Bullet);
+            _Bullet.SetActive(false);
+        }
+
     }
 
     public void SetLaser()
@@ -27,18 +42,39 @@ public class CWeaponManager : MonoBehaviour {
 
         RaycastHit _hit;
 
-        if (Physics.Raycast(transform.position, transform.forward, out _hit))
+        int _Tracer = (-1) - ((1 << LayerMask.NameToLayer("Tracer")));
+
+
+        Quaternion reset = transform.rotation;
+        Quaternion temp = reset;
+
+        temp.x += Random.Range(-0.02f, 0.02f);
+        temp.y += Random.Range(-0.02f, 0.02f);
+        temp.z += Random.Range(-0.02f, 0.02f);
+
+        transform.rotation = temp;
+
+        if (Physics.Raycast(transform.position, transform.forward, out _hit, 1000f, _Tracer))
         {
             if (_hit.collider)
             {
-                //Debug.Log(_hit.point);
                 SpawnDecal(_hit, effect);
             }
         }
 
+        b_count++;
 
-        GameObject _Bullet = Instantiate(Tracer, this.transform.position, Quaternion.identity) as GameObject;
-        _Bullet.transform.rotation = this.transform.rotation;
+        if (b_count >= max)
+        {
+            b_count = 0;
+        }
+        m_BulletList[b_count].SetActive(true);
+        m_BulletList[b_count].GetComponent<CAttackBullet>().SetAddForce(_hit.point);
+
+        transform.rotation = reset;
+
+        //GameObject _Bullet = Instantiate(Tracer, this.transform.position, Quaternion.identity) as GameObject;
+        //_Bullet.transform.rotation = this.transform.rotation;
 
         //_Bullet.transform.parent = transform;
     }
