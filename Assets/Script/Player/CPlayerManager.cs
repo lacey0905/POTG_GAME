@@ -30,7 +30,9 @@ public class CPlayerManager : MonoBehaviour {
     CMakeRay m_Ray;
     CPlayerControl m_Control;
     CPlayerAnim m_AnimControl;
-    
+
+    public bool tempLocal = false;
+
     void Awake()
     {
         m_Control = GetComponent<CPlayerControl>();
@@ -45,8 +47,11 @@ public class CPlayerManager : MonoBehaviour {
 
         //}
 
-        // 자신이 처음 스폰 되거나, 리스폰 되었을 때 카메라가 자신을 따라가게 함
-        CGameManager.m_CameraTargetPlayer = this;
+        if (tempLocal)
+        {
+            // 자신이 처음 스폰 되거나, 리스폰 되었을 때 카메라가 자신을 따라가게 함
+            CGameManager.m_CameraTargetPlayer = this;
+        }
 
         // 캐릭터가 생성되면 게임 매니저의 플레이어 리스트에 넣음
         CGameManager.m_NetworkPlayerList.Add(this);
@@ -63,10 +68,18 @@ public class CPlayerManager : MonoBehaviour {
         //if (!isServer)
         //    return;
 
+        Data.Health -= _damage;
     }
 
     void FixedUpdate()
     {
+
+        if (!tempLocal)
+        {
+            Debug.Log(Data.Health);
+            return;
+        }
+
         // 공격 버튼 입력
         isFire = Input.GetMouseButton(0);
 
@@ -136,7 +149,7 @@ public class CPlayerManager : MonoBehaviour {
     {
         isShut = false;
         yield return new WaitForSeconds(0.1f);
-        m_Weapon.Attack(isFire);
+        m_Weapon.Attack();
         isShut = true;
     }
    

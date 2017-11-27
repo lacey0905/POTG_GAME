@@ -3,35 +3,39 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CWeaponManager : MonoBehaviour {
+    /// <summary>
+    /// 0 - 피1
+    /// 1 - 피2
+    /// 2 - 메탈
+    /// 3 - 모래
+    /// 4 - 스톤
+    /// </summary>
+    public List<GameObject> m_Mark = new List<GameObject>();            // 총알 자국 이펙트 리스트
+    public List<GameObject> m_BulletList = new List<GameObject>();      // 총알 풀링 리스트
 
-    public GameObject m_Bullet;
-    public GameObject m_Laser;
+    public GameObject m_Tracer;             // 총알
+    public GameObject m_ShutEffect;         // 총알 발사 이펙트
+    public GameObject m_Laser;              // 레이저
 
-    public GameObject effect;
+    public int m_Max = 10;                  // 풀링 최대치
+    public int m_CurCount = 0;              // 현재 총알 번호
 
-    public GameObject Tracer;
-
-    public GameObject m_ShutEffect;
-
-    public List<GameObject> m_BulletList = new List<GameObject>();
-
-    public int b_count = 0;
-
-    public int max = 10;
-
+    int m_TracerPassLayer;                            // 무시할 충돌 레이어
+    float m_Reaction = 0.015f;
 
     void Start()
     {
-        for (int i = 0; i < 10; i++)
+        // 총알을 최대치 까지 미리 생성 함
+        for (int i = 0; i < m_Max; i++)
         {
-            GameObject _Bullet = Instantiate(Tracer, this.transform.position, Quaternion.identity) as GameObject;
+            GameObject _Bullet = Instantiate(m_Tracer, this.transform.position, Quaternion.identity) as GameObject;
             _Bullet.transform.rotation = this.transform.rotation;
             _Bullet.transform.parent = this.transform;
+            _Bullet.SetActive(false);
 
             m_BulletList.Add(_Bullet);
-            _Bullet.SetActive(false);
         }
-
+        m_TracerPassLayer = (-1) - ((1 << LayerMask.NameToLayer("Tracer")) | (1 << LayerMask.NameToLayer("RayFloor")));
     }
 
     public void SetLaser()
@@ -42,50 +46,48 @@ public class CWeaponManager : MonoBehaviour {
     public void NoneAttack()
     {
         m_ShutEffect.transform.localScale = new Vector3(0f, 0f, 0f);
-
     }
-    public void Attack(bool _shut)
-    {
 
+    public void Attack()
+    {
         m_ShutEffect.transform.localScale = new Vector3(6f, 6f, 6f);
 
         RaycastHit _hit;
+        Quaternion _Reset = transform.localRotation;                // 원래 회전 값 저장
+        Quaternion _Reaction = _Reset;                              // 반동 회전 값
 
-        int _Tracer = (-1) - ((1 << LayerMask.NameToLayer("Tracer")));
+        _Reaction.x += Random.Range(-m_Reaction, m_Reaction);       
+        _Reaction.y += Random.Range(-m_Reaction, m_Reaction);
+        _Reaction.z += Random.Range(-m_Reaction, m_Reaction);
 
+        transform.localRotation = _Reaction;                        // 반동 회전 값 적용
 
-        Quaternion reset = transform.rotation;
-        Quaternion temp = reset;
-
-        temp.x += Random.Range(-0.02f, 0.02f);
-        temp.y += Random.Range(-0.02f, 0.02f);
-        temp.z += Random.Range(-0.02f, 0.02f);
-
-        transform.rotation = temp;
-
-        if (Physics.Raycast(transform.position, transform.forward, out _hit, 1000f, _Tracer))
+        if (Physics.Raycast(transform.position, transform.forward, out _hit, 1000f, m_TracerPassLayer))
         {
             if (_hit.collider)
             {
-                SpawnDecal(_hit, effect);
+                if (_hit.collider.tag == "Player")
+                {
+                    SpawnDecal(_hit, m_Mark[1]);            // 충돌 한 좌표에 마크 표시
+                }
+                else
+                {
+                    SpawnDecal(_hit, m_Mark[4]);            // 충돌 한 좌표에 마크 표시
+                }
             }
         }
 
-        b_count++;
+        m_CurCount++;                                   // 현재 총알 번호
 
-        if (b_count >= max)
+        // 총알 번호 초기화
+        if (m_CurCount >= m_Max)
         {
-            b_count = 0;
+            m_CurCount = 0;                             
         }
-        m_BulletList[b_count].SetActive(true);
-        m_BulletList[b_count].GetComponent<CAttackBullet>().SetAddForce(_hit.point);
+        m_BulletList[m_CurCount].SetActive(true);
+        m_BulletList[m_CurCount].GetComponent<CAttackBullet>().SetTracerTarget(_hit.point);
 
-        transform.rotation = reset;
-
-        //GameObject _Bullet = Instantiate(Tracer, this.transform.position, Quaternion.identity) as GameObject;
-        //_Bullet.transform.rotation = this.transform.rotation;
-
-        //_Bullet.transform.parent = transform;
+        transform.localRotation = _Reset;
     }
 
     void SpawnDecal(RaycastHit hit, GameObject prefab)

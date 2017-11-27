@@ -35,11 +35,11 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4779203859924986}
-  - component: {fileID: 65961263545498808}
   - component: {fileID: 54848665934841710}
   - component: {fileID: 114770015271937960}
+  - component: {fileID: 135047613089670004}
   m_Layer: 9
-  m_Name: Bullet_A
+  m_Name: Tracer
   m_TagString: object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -68,7 +68,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1040820623799744}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 2.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4791723222964950}
@@ -82,8 +82,8 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1407674743483348}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.958416, y: 4.58, z: -12.99}
-  m_LocalScale: {x: 1, y: 1, z: 2.0439563}
+  m_LocalPosition: {x: -2.88, y: 0.87, z: -4.24362}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4554303778449004}
   m_Father: {fileID: 0}
@@ -117,18 +117,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!65 &65961263545498808
-BoxCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1407674743483348}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!96 &96009407452297250
 TrailRenderer:
   serializedVersion: 2
@@ -164,7 +152,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 0.075
+  m_Time: 0.5
   m_Parameters:
     serializedVersion: 2
     widthMultiplier: 1
@@ -172,14 +160,14 @@ TrailRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 2
-        time: 0
-        value: 0.17021179
+        time: 0.01442337
+        value: 0.09474182
         inSlope: 0
         outSlope: 0
         tangentMode: 0
       - serializedVersion: 2
         time: 1
-        value: 0.2553196
+        value: 0.33079338
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -220,7 +208,7 @@ TrailRenderer:
     alignment: 0
     textureMode: 0
     generateLightingData: 0
-  m_MinVertexDistance: 0.5
+  m_MinVertexDistance: 0.1
   m_Autodestruct: 0
 --- !u!108 &108775788334285330
 Light:
@@ -269,4 +257,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81035bad41cb016488f7748950e9f665, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_fBulletSpeed: 3000
+  m_fBulletSpeed: 80
+  m_Damage: 1
+--- !u!135 &135047613089670004
+SphereCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1407674743483348}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
