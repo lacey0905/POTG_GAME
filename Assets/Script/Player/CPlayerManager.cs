@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public struct CPlayerData
 {
@@ -16,22 +17,21 @@ public struct CPlayerData
     }
 }
 
-public class CPlayerManager : MonoBehaviour {
+public class CPlayerManager : NetworkBehaviour {
 
     public CPlayerData Data;                // 캐릭터 정보
 
     public Transform m_FollowTag;
     public CWeaponManager m_Weapon;
 
-    bool isFire = false;                    // 공격 키 눌렀는지 여부
-    bool isShut = true;
-
     CCameraManager m_Camera;
     CMakeRay m_Ray;
     CPlayerControl m_Control;
     CPlayerAnim m_AnimControl;
 
-    public bool tempLocal = false;
+    bool isFire = false;
+    float h;
+    float v;
 
     void Awake()
     {
@@ -42,12 +42,7 @@ public class CPlayerManager : MonoBehaviour {
 
     void Start()
     {
-        //if (isLocalPlayer)
-        //{
-
-        //}
-
-        if (tempLocal)
+        if (isLocalPlayer)
         {
             // 자신이 처음 스폰 되거나, 리스폰 되었을 때 카메라가 자신을 따라가게 함
             CGameManager.m_CameraTargetPlayer = this;
@@ -61,44 +56,28 @@ public class CPlayerManager : MonoBehaviour {
 
         Setup(0, 100, "Player");
     }
-
  
     public void SetDecreaseHealth(int _damage)
     {
-        //if (!isServer)
-        //    return;
-
+        if (!isServer) return;
         Data.Health -= _damage;
     }
 
     void FixedUpdate()
     {
-
-        if (!tempLocal)
-        {
-            Debug.Log(Data.Health);
-            return;
-        }
+        if (!isLocalPlayer) return;
 
         // 공격 버튼 입력
         isFire = Input.GetMouseButton(0);
 
-        // 공격 버튼 활성화 시 행동
-        if (isFire)
-        {
-            CmdAttack();
-        }
-        else {
-            m_Weapon.NoneAttack();
-        }
-      
+        // 이동 입력
+        h = Input.GetAxisRaw("Horizontal");
+        v = Input.GetAxisRaw("Vertical");
 
-        // 공격 버튼을 눌렀을 경우 애니메이션
-        m_AnimControl.SetShooting(isFire);
+        bool _isRun = h != 0f || v != 0f;
 
-
-        //if (!isLocalPlayer) return;
-
+        CmdSync(isFire, _isRun);
+        
         if (m_Camera != null)
         {
             m_Camera.SetAimMode(m_Ray.GetRayPoint(), transform.position);
@@ -116,10 +95,6 @@ public class CPlayerManager : MonoBehaviour {
             m_Camera = CGameManager.m_CameraManager;
         }
 
-        // 이동 입력
-        float h = Input.GetAxisRaw("Horizontal");
-        float v = Input.GetAxisRaw("Vertical");
-
         // 캐릭터 이동
         Movement(h, v);
 
@@ -129,9 +104,7 @@ public class CPlayerManager : MonoBehaviour {
 
     public void Movement(float _h, float _v)
     {
-        bool _isRun = _h != 0f || _v != 0f;
         m_Control.Move(_h, _v);
-        m_AnimControl.SetRunning(_isRun);
     }
 
     public void Turning(Vector3 _ray)
@@ -145,41 +118,24 @@ public class CPlayerManager : MonoBehaviour {
         Data.DataSetup(_score, _health, _name);
     }
 
-    IEnumerator ShutWait()
+    [Command]
+    public void CmdSync(bool _isFire, bool _isRun)
     {
-        isShut = false;
-        yield return new WaitForSeconds(0.1f);
-        m_Weapon.Attack();
-        isShut = true;
-    }
-   
-
-    //[Command]
-    public void CmdAttack()
-    {
-        //if (!isClient)
-        //{
-        //    if (isShut)
-        //    {
-        //        StartCoroutine(ShutWait());
-        //    }
-        //}
-
-        //RpcFire();
-
-        if (isShut)
+        if (!isClient)
         {
-            StartCoroutine(ShutWait());
-        }
+            m_Weapon.SetAttackMode(_isFire);
+            m_AnimControl.SetShooting(_isFire);
+            m_AnimControl.SetRunning(_isRun);
 
+        }
+        RpcSync(_isFire, _isRun);
     }
 
-    //[ClientRpc]
-    //public void RpcFire()
-    //{
-    //    if (isShut)
-    //    {
-    //        StartCoroutine(ShutWait());
-    //    }
-    //}
+    [ClientRpc]
+    public void RpcSync(bool _isFire, bool _isRun)
+    {
+        m_Weapon.SetAttackMode(_isFire);
+        m_AnimControl.SetShooting(_isFire);
+        m_AnimControl.SetRunning(_isRun);
+    }
 }

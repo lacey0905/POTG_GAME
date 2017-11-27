@@ -18,6 +18,12 @@ public class CAttackBullet : MonoBehaviour {
 	void FixedUpdate ()
     {
         transform.position = Vector3.MoveTowards(transform.position, m_TracerTarget, m_fBulletSpeed * Time.smoothDeltaTime);
+
+        if (transform.position == m_TracerTarget)
+        {
+            SetTacerReset();
+        }
+
     }
 
     public void SetTracerTarget(Vector3 _hit)
