@@ -356,7 +356,7 @@ MonoBehaviour:
   m_Aim: {fileID: 382125640}
   m_fSmoothing: 10
   m_RotateSpeed: 100
-  m_AimClamp: 15
+  m_AimClamp: 0
   aimspeed: 3.5
 --- !u!4 &217669940
 Transform:

@@ -29,6 +29,92 @@ public class CWeaponManager : MonoBehaviour {
 
     bool isFireDelay = false;
 
+    public GameObject m_HitTarget;
+    public Vector3 m_HitPoint;
+
+
+    // 로컬 플레이어 전용
+    public void MakeHitTarget()
+    {
+        RaycastHit _hit;
+        Physics.Raycast(transform.position, transform.forward, out _hit, 1000f, m_TracerPassLayer);
+        m_HitTarget = _hit.collider.gameObject;
+        m_HitPoint = _hit.point;
+    }
+
+    public GameObject GetHitTarget()
+    {
+        return m_HitTarget;
+    }
+    public void SetHitTarget(GameObject _hit)
+    {
+        m_HitTarget = _hit;
+    }
+
+    public Vector3 GetHitPoint()
+    {
+        return m_HitPoint;
+    }
+    public void SetHitPoint(Vector3 _hitPoint)
+    {
+        m_HitPoint = _hitPoint;
+    }
+
+    void FixedUpdate()
+    {
+        if (m_Manager.State.isFire)
+        {
+            
+
+            //Attack(m_HitTarget, m_HitPoint);
+        }
+        else
+        {
+            m_ShutEffect.transform.localScale = new Vector3(0f, 0f, 0f);
+        }
+    }
+
+
+    public void Attack(GameObject _hitTarget, Vector3 _hitPoint)
+    {
+        m_ShutEffect.transform.localScale = new Vector3(6f, 6f, 6f);
+        if (!isFireDelay)
+        {
+
+            StartCoroutine(FireDelay());
+
+            Quaternion _Reset = transform.localRotation;                // 원래 회전 값 저장
+            Quaternion _Reaction = _Reset;                              // 반동 회전 값
+
+            _Reaction.x += Random.Range(-m_Reaction, m_Reaction);
+            _Reaction.y += Random.Range(-m_Reaction, m_Reaction);
+            _Reaction.z += Random.Range(-m_Reaction, m_Reaction);
+
+            //transform.localRotation = _Reaction;                        // 반동 회전 값 적용
+
+            if (_hitTarget.tag == "Player")
+            { 
+                SpawnDecal(_hitTarget, _hitPoint, m_Mark [1]);            // 충돌 한 좌표에 마크 표시
+                _hitTarget.GetComponent<CPlayerManager>().SetDecreaseHealth(1);
+            }
+            else
+            {
+                SpawnDecal(_hitTarget, _hitPoint, m_Mark [4]);            // 충돌 한 좌표에 마크 표시
+            }
+
+            m_CurCount++;                                       // 현재 총알 번호
+
+            // 총알 번호 초기화
+            if (m_CurCount >= m_Max)
+            {
+                m_CurCount = 0;
+            }
+            m_BulletList [m_CurCount].SetActive(true);
+            m_BulletList [m_CurCount].GetComponent<CAttackBullet>().SetTracerTarget(_hitPoint);
+
+            transform.localRotation = _Reset;
+        }
+    }
 
     public RaycastHit GetAttackRay()
     {
@@ -36,24 +122,6 @@ public class CWeaponManager : MonoBehaviour {
         Physics.Raycast(transform.position, transform.forward, out _hit, 1000f, m_TracerPassLayer);
         return _hit;
     }
-
-        //        
-        //    }
-
-        //    if (_hit.collider.tag == "Player")
-        //                {
-        //                    SpawnDecal(_hit, m_Mark [1]);            // 충돌 한 좌표에 마크 표시
-
-        //    _hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(1);
-
-        //}
-        //                else
-        //                {
-        //                    SpawnDecal(_hit, m_Mark [4]);            // 충돌 한 좌표에 마크 표시
-        //                }
-
-
-
 
 
         void Start()
@@ -71,17 +139,7 @@ public class CWeaponManager : MonoBehaviour {
         m_TracerPassLayer = (-1) - ((1 << LayerMask.NameToLayer("Tracer")) | (1 << LayerMask.NameToLayer("RayFloor")));
     }
 
-    void FixedUpdate()
-    {
-        if (m_Manager.State.isFire)
-        {
-            //Attack();
-        }
-        else
-        {
-            m_ShutEffect.transform.localScale = new Vector3(0f, 0f, 0f);
-        }
-    }
+    
 
     public void Owner(CPlayerManager _manager)
     {
@@ -100,40 +158,10 @@ public class CWeaponManager : MonoBehaviour {
         isFireDelay = false;
     }
 
-    public void Attack(Vector3 _point)
+
+    void SpawnDecal(GameObject _hitTarget, Vector3 _hitPoint, GameObject prefab)
     {
-        m_ShutEffect.transform.localScale = new Vector3(6f, 6f, 6f);
-        if (!isFireDelay)
-        {
-            StartCoroutine(FireDelay());
-            
-            Quaternion _Reset = transform.localRotation;                // 원래 회전 값 저장
-            Quaternion _Reaction = _Reset;                              // 반동 회전 값
-
-            _Reaction.x += Random.Range(-m_Reaction, m_Reaction);
-            _Reaction.y += Random.Range(-m_Reaction, m_Reaction);
-            _Reaction.z += Random.Range(-m_Reaction, m_Reaction);
-
-            //transform.localRotation = _Reaction;                        // 반동 회전 값 적용
-            
-
-            m_CurCount++;                                       // 현재 총알 번호
-
-            // 총알 번호 초기화
-            if (m_CurCount >= m_Max)
-            {
-                m_CurCount = 0;
-            }
-            m_BulletList[m_CurCount].SetActive(true);
-            m_BulletList [m_CurCount].GetComponent<CAttackBullet>().SetTracerTarget(_point);
-
-            transform.localRotation = _Reset;
-        }
-    }
-
-    void SpawnDecal(RaycastHit hit, GameObject prefab)
-    {
-        GameObject spawnedDecal = Instantiate(prefab, hit.point, Quaternion.LookRotation(hit.normal)) as GameObject;
-        spawnedDecal.transform.SetParent(hit.collider.transform);
+        GameObject spawnedDecal = Instantiate(prefab, _hitPoint, Quaternion.LookRotation(_hitPoint)) as GameObject;
+        spawnedDecal.transform.SetParent(_hitTarget.transform);
     }
 }

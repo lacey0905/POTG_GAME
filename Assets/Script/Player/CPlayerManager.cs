@@ -80,6 +80,7 @@ public class CPlayerManager : NetworkBehaviour {
 
     void FixedUpdate()
     {
+
         if (!isLocalPlayer) return;
 
         // 이동 키 입력
@@ -98,8 +99,20 @@ public class CPlayerManager : NetworkBehaviour {
         // 상태 변경
         State.SetState(isFire, isRun, isIdle);
 
-        CmdSync(State);
-        
+        // 무기 레이 생성
+        m_Weapon.MakeHitTarget();
+
+        // 동기화
+        CmdSync(State, m_Weapon.GetHitTarget(), m_Weapon.GetHitPoint());
+
+
+
+
+
+
+
+
+
         if (m_Camera != null)
         {
             m_Camera.SetAimMode(m_Ray.GetRayPoint(), transform.position);
@@ -142,34 +155,26 @@ public class CPlayerManager : NetworkBehaviour {
     }
 
     [Command]
-    public void CmdSync(CPlayerState _state)
+    public void CmdSync(CPlayerState _state, GameObject _hitTarget, Vector3 _hitPoint)
     {
         if (!isClient)
         {
-            if (_state.isFire)
+            State = _state;
+            if (State.isFire)
             {
-                m_Weapon.Attack(m_Weapon.GetAttackRay().point);
+                m_Weapon.Attack(_hitTarget, _hitPoint);
             }
-            
-            
-
-            //m_Weapon.SetAttackMode(_isFire);
-            //m_AnimControl.SetShooting(_isFire);
-            //m_AnimControl.SetRunning(_isRun);
-
         }
-        RpcSync(_state);
+        RpcSync(_state, _hitTarget, _hitPoint);
     }
 
     [ClientRpc]
-    public void RpcSync(CPlayerState _state)
+    public void RpcSync(CPlayerState _state, GameObject _hitTarget, Vector3 _hitPoint)
     {
-        if (_state.isFire)
+        State = _state;
+        if (State.isFire)
         {
-            m_Weapon.Attack(m_Weapon.GetAttackRay().point);
+            m_Weapon.Attack(_hitTarget, _hitPoint);
         }
-        //m_Weapon.SetAttackMode(_isFire);
-        //m_AnimControl.SetShooting(_isFire);
-        //m_AnimControl.SetRunning(_isRun);
     }
 }
