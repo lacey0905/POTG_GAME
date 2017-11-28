@@ -27,104 +27,12 @@ public class CWeaponManager : MonoBehaviour {
     int m_TracerPassLayer;                  // 무시할 충돌 레이어
     float m_Reaction = 0.015f;
 
+    Quaternion m_ResetAngle;
+    Quaternion m_ReactionAngle;
+
     bool isFireDelay = false;
 
-    public GameObject m_HitTarget;
-    public Vector3 m_HitPoint;
-
-
-    // 로컬 플레이어 전용
-    public void MakeHitTarget()
-    {
-        RaycastHit _hit;
-        Physics.Raycast(transform.position, transform.forward, out _hit, 1000f, m_TracerPassLayer);
-        m_HitTarget = _hit.collider.gameObject;
-        m_HitPoint = _hit.point;
-    }
-
-    public GameObject GetHitTarget()
-    {
-        return m_HitTarget;
-    }
-    public void SetHitTarget(GameObject _hit)
-    {
-        m_HitTarget = _hit;
-    }
-
-    public Vector3 GetHitPoint()
-    {
-        return m_HitPoint;
-    }
-    public void SetHitPoint(Vector3 _hitPoint)
-    {
-        m_HitPoint = _hitPoint;
-    }
-
-    void FixedUpdate()
-    {
-        if (m_Manager.State.isFire)
-        {
-            
-
-            //Attack(m_HitTarget, m_HitPoint);
-        }
-        else
-        {
-            m_ShutEffect.transform.localScale = new Vector3(0f, 0f, 0f);
-        }
-    }
-
-
-    public void Attack(GameObject _hitTarget, Vector3 _hitPoint)
-    {
-        m_ShutEffect.transform.localScale = new Vector3(6f, 6f, 6f);
-        if (!isFireDelay)
-        {
-
-            StartCoroutine(FireDelay());
-
-            Quaternion _Reset = transform.localRotation;                // 원래 회전 값 저장
-            Quaternion _Reaction = _Reset;                              // 반동 회전 값
-
-            _Reaction.x += Random.Range(-m_Reaction, m_Reaction);
-            _Reaction.y += Random.Range(-m_Reaction, m_Reaction);
-            _Reaction.z += Random.Range(-m_Reaction, m_Reaction);
-
-            //transform.localRotation = _Reaction;                        // 반동 회전 값 적용
-
-            if (_hitTarget.tag == "Player")
-            { 
-                SpawnDecal(_hitTarget, _hitPoint, m_Mark [1]);            // 충돌 한 좌표에 마크 표시
-                _hitTarget.GetComponent<CPlayerManager>().SetDecreaseHealth(1);
-            }
-            else
-            {
-                SpawnDecal(_hitTarget, _hitPoint, m_Mark [4]);            // 충돌 한 좌표에 마크 표시
-            }
-
-            m_CurCount++;                                       // 현재 총알 번호
-
-            // 총알 번호 초기화
-            if (m_CurCount >= m_Max)
-            {
-                m_CurCount = 0;
-            }
-            m_BulletList [m_CurCount].SetActive(true);
-            m_BulletList [m_CurCount].GetComponent<CAttackBullet>().SetTracerTarget(_hitPoint);
-
-            transform.localRotation = _Reset;
-        }
-    }
-
-    public RaycastHit GetAttackRay()
-    {
-        RaycastHit _hit;
-        Physics.Raycast(transform.position, transform.forward, out _hit, 1000f, m_TracerPassLayer);
-        return _hit;
-    }
-
-
-        void Start()
+    void Start()
     {
         // 총알을 최대치 까지 미리 생성 함
         for (int i = 0; i < m_Max; i++)
@@ -137,9 +45,103 @@ public class CWeaponManager : MonoBehaviour {
             m_BulletList.Add(_Bullet);
         }
         m_TracerPassLayer = (-1) - ((1 << LayerMask.NameToLayer("Tracer")) | (1 << LayerMask.NameToLayer("RayFloor")));
+
+        // 기본 엥글
+        m_ResetAngle = transform.localRotation;
+        m_ReactionAngle = m_ResetAngle;
     }
 
-    
+    void FixedUpdate()
+    {
+        // 캐릭터가 공격 상태면 실행
+        if (m_Manager.State.isFire)
+        {
+            if (!isFireDelay)
+            {
+                StartCoroutine(FireDelay());
+                m_ShutEffect.transform.localScale = new Vector3(6f, 6f, 6f);
+
+                transform.localRotation = m_ReactionAngle;
+
+                MakeHitTarget();
+                Attack();
+
+                transform.localRotation = m_ResetAngle;
+            }
+        }
+        else
+        {
+            m_ShutEffect.transform.localScale = new Vector3(0f, 0f, 0f);
+        }
+    }
+
+    IEnumerator FireDelay()
+    {
+        isFireDelay = true;
+        yield return new WaitForSeconds(0.1f);
+        isFireDelay = false;
+    }
+
+    RaycastHit m_Hit;
+    public void MakeHitTarget()
+    {
+        Physics.Raycast(transform.position, transform.forward, out m_Hit, 1000f, m_TracerPassLayer);
+    }
+
+
+    int _damage;
+
+    public int _Damage()
+    {
+        return _damage;
+    }
+
+    public void SetReset() {
+        _damage = 0;
+    }
+
+    void Attack()
+    {
+        if (m_Hit.collider)
+        {
+            if (m_Hit.collider.tag == "Player")
+            {
+                SpawnDecal(m_Hit, m_Mark[1]);
+                m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
+                Debug.Log(m_Hit.collider.gameObject.GetComponent<CPlayerManager>().Data.Health);
+            }
+            else
+            {
+                SpawnDecal(m_Hit, m_Mark[4]);
+            }
+        }
+
+        m_CurCount++;                                       // 현재 총알 번호
+
+        // 총알 번호 초기화
+        if (m_CurCount >= m_Max)
+        {
+            m_CurCount = 0;
+        }
+        m_BulletList [m_CurCount].SetActive(true);
+        m_BulletList [m_CurCount].GetComponent<CAttackBullet>().SetTracerTarget(m_Hit.point);
+    }
+
+    public Quaternion GetReaction()
+    {
+        Quaternion _reaction = m_ResetAngle;
+
+        _reaction.x += Random.Range(-m_Reaction, m_Reaction);
+        _reaction.y += Random.Range(-m_Reaction, m_Reaction);
+        _reaction.z += Random.Range(-m_Reaction, m_Reaction);
+
+        return _reaction;
+    }
+
+    public void SetReaction(Quaternion _angle)
+    {
+        m_ReactionAngle = _angle;
+    }
 
     public void Owner(CPlayerManager _manager)
     {
@@ -151,17 +153,9 @@ public class CWeaponManager : MonoBehaviour {
         m_Laser.SetActive(true);
     }
 
-    IEnumerator FireDelay()
+    void SpawnDecal(RaycastHit _hit, GameObject prefab)
     {
-        isFireDelay = true;
-        yield return new WaitForSeconds(m_Delay);
-        isFireDelay = false;
-    }
-
-
-    void SpawnDecal(GameObject _hitTarget, Vector3 _hitPoint, GameObject prefab)
-    {
-        GameObject spawnedDecal = Instantiate(prefab, _hitPoint, Quaternion.LookRotation(_hitPoint)) as GameObject;
-        spawnedDecal.transform.SetParent(_hitTarget.transform);
+        GameObject spawnedDecal = Instantiate(prefab, _hit.point, Quaternion.LookRotation(_hit.normal)) as GameObject;
+        spawnedDecal.transform.SetParent(_hit.transform);
     }
 }

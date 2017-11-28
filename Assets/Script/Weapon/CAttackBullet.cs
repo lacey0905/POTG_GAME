@@ -31,19 +31,6 @@ public class CAttackBullet : MonoBehaviour {
         m_TracerTarget = _hit;
     }
 
-    // 총알 충돌 체크
-    void OnTriggerEnter(Collider _col)
-    {
-        if (_col.tag != "RayFloor")
-        {
-            SetTacerReset();
-            if (_col.tag == "Player")
-            {
-                _col.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(m_Damage);
-            }
-        }
-    }
-
     IEnumerator Destroy()
     {
         yield return new WaitForSeconds(2.0f);

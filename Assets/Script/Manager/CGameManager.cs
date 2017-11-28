@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CGameManager : MonoBehaviour {
 
@@ -13,8 +14,17 @@ public class CGameManager : MonoBehaviour {
     // 카메라 매니저
     public static CCameraManager m_CameraManager;
 
+
+    public Text text;
+
     void FixedUpdate()
     {
+
+        //text.text = m_CameraTargetPlayer.test().ToString();
+
+        Debug.Log(m_NetworkPlayerList[0].hp);
+        Debug.Log(m_NetworkPlayerList[1].hp);
+
         if (m_CameraTargetPlayer != null)
         {
             m_CameraManager.SetPosition(m_CameraTargetPlayer.transform.position);

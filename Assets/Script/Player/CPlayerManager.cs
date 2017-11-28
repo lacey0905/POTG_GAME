@@ -5,12 +5,14 @@ using UnityEngine.Networking;
 
 public struct CPlayerData
 {
+    public int index;
     public int Score;
     public int Health;
     public string Name;
 
     public void DataSetup(int _score, int _health, string _name)
     {
+        this.index = 0;
         this.Score = _score;
         this.Health = _health;
         this.Name = _name;
@@ -31,6 +33,7 @@ public struct CPlayerState
         isIdle = _idle;
     }
 }
+
 public class CPlayerManager : NetworkBehaviour {
 
     public CPlayerData Data;                // 캐릭터 정보
@@ -43,7 +46,6 @@ public class CPlayerManager : NetworkBehaviour {
     CMakeRay m_Ray;
     CPlayerControl m_Control;
     CPlayerAnim m_AnimControl;
-
 
     void Awake()
     {
@@ -71,15 +73,25 @@ public class CPlayerManager : NetworkBehaviour {
         Setup(0, 100, "Player");
 
     }
- 
+
+    [SyncVar]
+    public int hp = 100;
+
     public void SetDecreaseHealth(int _damage)
     {
-        if (!isServer) return;
-        Data.Health -= _damage;
+        //if (!isServer) return;
+
+        hp -= _damage;
     }
 
     void FixedUpdate()
     {
+
+        if (hp <= 0)
+        {
+            this.gameObject.SetActive(false);
+        }
+
 
         if (!isLocalPlayer) return;
 
@@ -99,19 +111,11 @@ public class CPlayerManager : NetworkBehaviour {
         // 상태 변경
         State.SetState(isFire, isRun, isIdle);
 
-        // 무기 레이 생성
-        m_Weapon.MakeHitTarget();
+        Quaternion _angle = m_Weapon.GetReaction();
+
 
         // 동기화
-        CmdSync(State, m_Weapon.GetHitTarget(), m_Weapon.GetHitPoint());
-
-
-
-
-
-
-
-
+        CmdSync(State, _angle);
 
         if (m_Camera != null)
         {
@@ -154,27 +158,33 @@ public class CPlayerManager : NetworkBehaviour {
         Data.DataSetup(_score, _health, _name);
     }
 
+    IEnumerator DataSync(CPlayerData _data)
+    {
+        yield return new WaitForSeconds(1f);
+        Data = _data;
+    }
+
     [Command]
-    public void CmdSync(CPlayerState _state, GameObject _hitTarget, Vector3 _hitPoint)
+    public void CmdSync(CPlayerState _state, Quaternion _angle)
     {
         if (!isClient)
         {
             State = _state;
             if (State.isFire)
             {
-                m_Weapon.Attack(_hitTarget, _hitPoint);
+                m_Weapon.SetReaction(_angle);
             }
         }
-        RpcSync(_state, _hitTarget, _hitPoint);
+        RpcSync(_state, _angle);
     }
 
     [ClientRpc]
-    public void RpcSync(CPlayerState _state, GameObject _hitTarget, Vector3 _hitPoint)
+    public void RpcSync(CPlayerState _state, Quaternion _angle)
     {
         State = _state;
         if (State.isFire)
         {
-            m_Weapon.Attack(_hitTarget, _hitPoint);
+            m_Weapon.SetReaction(_angle);
         }
     }
 }
