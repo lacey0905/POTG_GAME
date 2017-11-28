@@ -17,9 +17,24 @@ public struct CPlayerData
     }
 }
 
+public struct CPlayerState
+{
+    // 캐릭터 상태 값
+    public bool isFire;
+    public bool isRun;
+    public bool isIdle;
+
+    public void SetState(bool _fire, bool _run, bool _idle)
+    {
+        isFire = _fire;
+        isRun = _run;
+        isIdle = _idle;
+    }
+}
 public class CPlayerManager : NetworkBehaviour {
 
     public CPlayerData Data;                // 캐릭터 정보
+    public CPlayerState State;
 
     public Transform m_FollowTag;
     public CWeaponManager m_Weapon;
@@ -29,9 +44,6 @@ public class CPlayerManager : NetworkBehaviour {
     CPlayerControl m_Control;
     CPlayerAnim m_AnimControl;
 
-    bool isFire = false;
-    float h;
-    float v;
 
     void Awake()
     {
@@ -51,10 +63,13 @@ public class CPlayerManager : NetworkBehaviour {
         // 캐릭터가 생성되면 게임 매니저의 플레이어 리스트에 넣음
         CGameManager.m_NetworkPlayerList.Add(this);
 
+        m_Weapon.Owner(this);
+
         // 레이저를 활성화 함
         m_Weapon.SetLaser();
 
         Setup(0, 100, "Player");
+
     }
  
     public void SetDecreaseHealth(int _damage)
@@ -67,16 +82,23 @@ public class CPlayerManager : NetworkBehaviour {
     {
         if (!isLocalPlayer) return;
 
-        // 공격 버튼 입력
-        isFire = Input.GetMouseButton(0);
+        // 이동 키 입력
+        float h = Input.GetAxisRaw("Horizontal");
+        float v = Input.GetAxisRaw("Vertical");
 
-        // 이동 입력
-        h = Input.GetAxisRaw("Horizontal");
-        v = Input.GetAxisRaw("Vertical");
+        // 이동 상태 변환
+        bool isRun = h != 0f || v != 0f;
 
-        bool _isRun = h != 0f || v != 0f;
+        // 스텐드 상태
+        bool isIdle = h == 0f && v == 0f;
 
-        CmdSync(isFire, _isRun);
+        // 공격 상태 변환
+        bool isFire = Input.GetMouseButton(0);
+
+        // 상태 변경
+        State.SetState(isFire, isRun, isIdle);
+
+        CmdSync(State);
         
         if (m_Camera != null)
         {
@@ -114,28 +136,40 @@ public class CPlayerManager : NetworkBehaviour {
 
     public void Setup(int _score, int _health, string _name)
     {
+        State = new CPlayerState();
         Data = new CPlayerData();
         Data.DataSetup(_score, _health, _name);
     }
 
     [Command]
-    public void CmdSync(bool _isFire, bool _isRun)
+    public void CmdSync(CPlayerState _state)
     {
         if (!isClient)
         {
-            m_Weapon.SetAttackMode(_isFire);
-            m_AnimControl.SetShooting(_isFire);
-            m_AnimControl.SetRunning(_isRun);
+            if (_state.isFire)
+            {
+                m_Weapon.Attack(m_Weapon.GetAttackRay().point);
+            }
+            
+            
+
+            //m_Weapon.SetAttackMode(_isFire);
+            //m_AnimControl.SetShooting(_isFire);
+            //m_AnimControl.SetRunning(_isRun);
 
         }
-        RpcSync(_isFire, _isRun);
+        RpcSync(_state);
     }
 
     [ClientRpc]
-    public void RpcSync(bool _isFire, bool _isRun)
+    public void RpcSync(CPlayerState _state)
     {
-        m_Weapon.SetAttackMode(_isFire);
-        m_AnimControl.SetShooting(_isFire);
-        m_AnimControl.SetRunning(_isRun);
+        if (_state.isFire)
+        {
+            m_Weapon.Attack(m_Weapon.GetAttackRay().point);
+        }
+        //m_Weapon.SetAttackMode(_isFire);
+        //m_AnimControl.SetShooting(_isFire);
+        //m_AnimControl.SetRunning(_isRun);
     }
 }

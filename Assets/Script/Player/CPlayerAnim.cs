@@ -4,30 +4,19 @@ using UnityEngine;
 
 public class CPlayerAnim : MonoBehaviour {
 
-    bool isShut = false;
-    bool isRun = false;
-
     Animator m_Anim;
+    CPlayerManager m_Manager;
 
 	void Awake ()
     {
         m_Anim = GetComponent<Animator>();
-	}
-
-    void Update()
-    {
-        m_Anim.SetBool("isRun", isRun);
-        m_Anim.SetBool("isMoveShut", isRun && isShut);
-        m_Anim.SetBool("isStandShut", isRun == false ? isShut : false);
+        m_Manager = GetComponent<CPlayerManager>();
     }
 
-    public void SetShooting(bool _shut)
+    void FixedUpdate()
     {
-        isShut = _shut;
-    }
-
-    public void SetRunning(bool _isRun)
-    {
-        isRun = _isRun;
+        m_Anim.SetBool("isRun", m_Manager.State.isRun);
+        m_Anim.SetBool("isMoveShut", m_Manager.State.isRun && m_Manager.State.isFire);
+        m_Anim.SetBool("isStandShut", m_Manager.State.isRun == false ? m_Manager.State.isFire : false);
     }
 }

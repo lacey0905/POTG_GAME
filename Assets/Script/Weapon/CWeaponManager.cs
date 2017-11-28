@@ -17,6 +17,8 @@ public class CWeaponManager : MonoBehaviour {
     public GameObject m_ShutEffect;         // 총알 발사 이펙트
     public GameObject m_Laser;              // 레이저
 
+    public CPlayerManager m_Manager;
+
     float m_Delay = 0.1f;
 
     int m_Max = 100;                         // 풀링 최대치
@@ -26,9 +28,35 @@ public class CWeaponManager : MonoBehaviour {
     float m_Reaction = 0.015f;
 
     bool isFireDelay = false;
-    bool isAttackMode = false;
 
-    void Start()
+
+    public RaycastHit GetAttackRay()
+    {
+        RaycastHit _hit;
+        Physics.Raycast(transform.position, transform.forward, out _hit, 1000f, m_TracerPassLayer);
+        return _hit;
+    }
+
+        //        
+        //    }
+
+        //    if (_hit.collider.tag == "Player")
+        //                {
+        //                    SpawnDecal(_hit, m_Mark [1]);            // 충돌 한 좌표에 마크 표시
+
+        //    _hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(1);
+
+        //}
+        //                else
+        //                {
+        //                    SpawnDecal(_hit, m_Mark [4]);            // 충돌 한 좌표에 마크 표시
+        //                }
+
+
+
+
+
+        void Start()
     {
         // 총알을 최대치 까지 미리 생성 함
         for (int i = 0; i < m_Max; i++)
@@ -43,13 +71,11 @@ public class CWeaponManager : MonoBehaviour {
         m_TracerPassLayer = (-1) - ((1 << LayerMask.NameToLayer("Tracer")) | (1 << LayerMask.NameToLayer("RayFloor")));
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        Debug.Log(isAttackMode);
-
-        if (isAttackMode)
+        if (m_Manager.State.isFire)
         {
-            Attack();
+            //Attack();
         }
         else
         {
@@ -57,14 +83,14 @@ public class CWeaponManager : MonoBehaviour {
         }
     }
 
+    public void Owner(CPlayerManager _manager)
+    {
+        m_Manager = _manager;
+    }
+
     public void SetLaser()
     {
         m_Laser.SetActive(true);
-    }
-
-    public void SetAttackMode(bool _attack)
-    {
-        isAttackMode = _attack;
     }
 
     IEnumerator FireDelay()
@@ -74,13 +100,13 @@ public class CWeaponManager : MonoBehaviour {
         isFireDelay = false;
     }
 
-    public void Attack()
+    public void Attack(Vector3 _point)
     {
         m_ShutEffect.transform.localScale = new Vector3(6f, 6f, 6f);
         if (!isFireDelay)
         {
             StartCoroutine(FireDelay());
-            RaycastHit _hit;
+            
             Quaternion _Reset = transform.localRotation;                // 원래 회전 값 저장
             Quaternion _Reaction = _Reset;                              // 반동 회전 값
 
@@ -88,25 +114,8 @@ public class CWeaponManager : MonoBehaviour {
             _Reaction.y += Random.Range(-m_Reaction, m_Reaction);
             _Reaction.z += Random.Range(-m_Reaction, m_Reaction);
 
-            transform.localRotation = _Reaction;                        // 반동 회전 값 적용
-
-            if (Physics.Raycast(transform.position, transform.forward, out _hit, 1000f, m_TracerPassLayer))
-            {
-                if (_hit.collider)
-                {
-                    if (_hit.collider.tag == "Player")
-                    {
-                        SpawnDecal(_hit, m_Mark[1]);            // 충돌 한 좌표에 마크 표시
-
-                        _hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(1);
-
-                    }
-                    else
-                    {
-                        SpawnDecal(_hit, m_Mark[4]);            // 충돌 한 좌표에 마크 표시
-                    }
-                }
-            }
+            //transform.localRotation = _Reaction;                        // 반동 회전 값 적용
+            
 
             m_CurCount++;                                       // 현재 총알 번호
 
@@ -116,7 +125,7 @@ public class CWeaponManager : MonoBehaviour {
                 m_CurCount = 0;
             }
             m_BulletList[m_CurCount].SetActive(true);
-            m_BulletList[m_CurCount].GetComponent<CAttackBullet>().SetTracerTarget(_hit.point);
+            m_BulletList [m_CurCount].GetComponent<CAttackBullet>().SetTracerTarget(_point);
 
             transform.localRotation = _Reset;
         }
