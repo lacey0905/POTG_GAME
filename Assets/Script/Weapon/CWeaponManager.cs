@@ -106,13 +106,23 @@ public class CWeaponManager : MonoBehaviour {
         {
             if (m_Hit.collider.tag == "Player")
             {
-                SpawnDecal(m_Hit, m_Mark[1]);
-                m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
-                Debug.Log(m_Hit.collider.gameObject.GetComponent<CPlayerManager>().Data.Health);
+                
+                //m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
+                //Debug.Log(m_Hit.collider.gameObject.GetComponent<CPlayerManager>().Data.Health);
+
+                Debug.Log(m_Hit.collider.gameObject.GetComponent<CPlayerManager>().netId);
+
+                m_Hit.collider.gameObject.GetComponent<CPlayerManager>().TakeDamage(10, m_Hit.point);
+
+                if (m_Manager.active > 0)
+                {
+                    SpawnDecal(m_Hit, m_Mark[1], m_Manager.hit);
+                }
+
             }
             else
             {
-                SpawnDecal(m_Hit, m_Mark[4]);
+                SpawnDecal(m_Hit, m_Mark[4], m_Manager.hit);
             }
         }
 
@@ -153,9 +163,9 @@ public class CWeaponManager : MonoBehaviour {
         m_Laser.SetActive(true);
     }
 
-    void SpawnDecal(RaycastHit _hit, GameObject prefab)
+    void SpawnDecal(RaycastHit _hit, GameObject prefab, Vector3 _point)
     {
-        GameObject spawnedDecal = Instantiate(prefab, _hit.point, Quaternion.LookRotation(_hit.normal)) as GameObject;
+        GameObject spawnedDecal = Instantiate(prefab, _point, Quaternion.LookRotation(_hit.normal)) as GameObject;
         spawnedDecal.transform.SetParent(_hit.transform);
     }
 }

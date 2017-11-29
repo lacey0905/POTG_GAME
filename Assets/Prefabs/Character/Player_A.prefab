@@ -1081,6 +1081,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_FollowTag: {fileID: 4100576184727680}
   m_Weapon: {fileID: 114796055303449646}
+  hp: 100
+  currentHealth: 100
 --- !u!114 &114148427919399606
 MonoBehaviour:
   m_ObjectHideFlags: 1

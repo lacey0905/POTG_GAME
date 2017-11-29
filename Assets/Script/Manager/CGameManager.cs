@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
+using UnityEngine.Networking.NetworkSystem;
 
 public class CGameManager : MonoBehaviour {
 
@@ -17,13 +19,12 @@ public class CGameManager : MonoBehaviour {
 
     public Text text;
 
+
     void FixedUpdate()
     {
 
-        //text.text = m_CameraTargetPlayer.test().ToString();
+        if(m_CameraTargetPlayer) text.text = m_CameraTargetPlayer.getHp().ToString();
 
-        Debug.Log(m_NetworkPlayerList[0].hp);
-        Debug.Log(m_NetworkPlayerList[1].hp);
 
         if (m_CameraTargetPlayer != null)
         {

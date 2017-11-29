@@ -47,6 +47,9 @@ public class CPlayerManager : NetworkBehaviour {
     CPlayerControl m_Control;
     CPlayerAnim m_AnimControl;
 
+
+    
+
     void Awake()
     {
         m_Control = GetComponent<CPlayerControl>();
@@ -74,7 +77,6 @@ public class CPlayerManager : NetworkBehaviour {
 
     }
 
-    [SyncVar]
     public int hp = 100;
 
     public void SetDecreaseHealth(int _damage)
@@ -84,13 +86,59 @@ public class CPlayerManager : NetworkBehaviour {
         hp -= _damage;
     }
 
+
+    // 서버->클라 방향으로 데이터를 동기화함
+    // 데이터가 서버 기준으로 동기화 됨
+    [SyncVar]
+    public int currentHealth = 100;
+
+    public int getHp()
+    {
+        return currentHealth;
+    }
+
+    [SyncVar]
+    public int active;
+
+    [SyncVar]
+    public Vector3 hit;
+
+    public void TakeDamage(int amount, Vector3 _hit)
+    {
+        // 서버가 아니면 값을 변경하지 않는다.
+        if (!isServer)
+            return;
+
+        currentHealth -= amount;
+        active = 1;
+        hit = _hit;
+    }
+
+    void OnChangeHealth(int health)
+    {
+        Debug.Log(health);
+    }
+
+
+    [SyncVar]
+    public float time = 100f;
+
+   
+
     void FixedUpdate()
     {
-
-        if (hp <= 0)
+        if (currentHealth <= 0)
         {
+            currentHealth = 0;
             this.gameObject.SetActive(false);
         }
+
+        time += Time.smoothDeltaTime;
+
+        //if (currentHealth <= 0)
+        //{
+        //    this.gameObject.SetActive(false);
+        //}
 
 
         if (!isLocalPlayer) return;
