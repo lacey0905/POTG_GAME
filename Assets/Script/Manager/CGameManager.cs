@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Networking;
-using UnityEngine.Networking.NetworkSystem;
 
 public class CGameManager : MonoBehaviour {
 
@@ -16,16 +14,8 @@ public class CGameManager : MonoBehaviour {
     // 카메라 매니저
     public static CCameraManager m_CameraManager;
 
-
-    public Text text;
-
-
     void FixedUpdate()
     {
-
-        if(m_CameraTargetPlayer) text.text = m_CameraTargetPlayer.getHp().ToString();
-
-
         if (m_CameraTargetPlayer != null)
         {
             m_CameraManager.SetPosition(m_CameraTargetPlayer.transform.position);

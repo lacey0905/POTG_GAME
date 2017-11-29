@@ -8,6 +8,7 @@ public struct CPlayerData
     public int index;
     public int Score;
     public int Health;
+    public int MaxHealth;
     public string Name;
 
     public void DataSetup(int _score, int _health, string _name)
@@ -15,6 +16,7 @@ public struct CPlayerData
         this.index = 0;
         this.Score = _score;
         this.Health = _health;
+        this.MaxHealth = 100;
         this.Name = _name;
     }
 }
@@ -31,8 +33,10 @@ public struct CPlayerState
         isFire = _fire;
         isRun = _run;
         isIdle = _idle;
+
     }
 }
+
 
 public class CPlayerManager : NetworkBehaviour {
 
@@ -46,9 +50,6 @@ public class CPlayerManager : NetworkBehaviour {
     CMakeRay m_Ray;
     CPlayerControl m_Control;
     CPlayerAnim m_AnimControl;
-
-
-    
 
     void Awake()
     {
@@ -75,71 +76,36 @@ public class CPlayerManager : NetworkBehaviour {
 
         Setup(0, 100, "Player");
 
+        SyncHealth = Data.MaxHealth;
+
     }
-
-    public int hp = 100;
-
-    public void SetDecreaseHealth(int _damage)
-    {
-        //if (!isServer) return;
-
-        hp -= _damage;
-    }
-
 
     // 서버->클라 방향으로 데이터를 동기화함
     // 데이터가 서버 기준으로 동기화 됨
     [SyncVar]
-    public int currentHealth = 100;
-
-    public int getHp()
-    {
-        return currentHealth;
-    }
+    int SyncHealth;
 
     [SyncVar]
-    public int active;
+    bool isDead = false;
 
-    [SyncVar]
-    public Vector3 hit;
-
-    public void TakeDamage(int amount, Vector3 _hit)
+    public void SetDecreaseHealth(int _damage)
     {
-        // 서버가 아니면 값을 변경하지 않는다.
-        if (!isServer)
-            return;
-
-        currentHealth -= amount;
-        active = 1;
-        hit = _hit;
+        if (!isServer) return;
+        SyncHealth -= _damage;
     }
-
-    void OnChangeHealth(int health)
-    {
-        Debug.Log(health);
-    }
-
-
-    [SyncVar]
-    public float time = 100f;
-
-   
 
     void FixedUpdate()
     {
-        if (currentHealth <= 0)
+        if (SyncHealth <= 0)
         {
-            currentHealth = 0;
-            this.gameObject.SetActive(false);
+            SyncHealth = 0;
+            isDead = true;
         }
 
-        time += Time.smoothDeltaTime;
-
-        //if (currentHealth <= 0)
-        //{
-        //    this.gameObject.SetActive(false);
-        //}
-
+        if (isDead)
+        {
+            this.gameObject.SetActive(false);
+        }
 
         if (!isLocalPlayer) return;
 

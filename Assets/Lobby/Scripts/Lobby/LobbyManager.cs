@@ -6,7 +6,6 @@ using UnityEngine.Networking.Types;
 using UnityEngine.Networking.Match;
 using System.Collections;
 
-
 namespace Prototype.NetworkLobby
 {
     public class LobbyManager : NetworkLobbyManager 

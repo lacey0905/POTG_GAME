@@ -14,23 +14,24 @@ public class CWeaponManager : MonoBehaviour {
     public List<GameObject> m_BulletList = new List<GameObject>();      // 총알 풀링 리스트
 
     public GameObject m_Tracer;             // 총알
-    public GameObject m_ShutEffect;         // 총알 발사 이펙트
+    public ParticleSystem m_ShutEffect;         // 총알 발사 이펙트
     public GameObject m_Laser;              // 레이저
 
     public CPlayerManager m_Manager;
 
-    float m_Delay = 0.1f;
+    float m_Delay = 0.1f;                   // 발사 딜레이
+    bool isFireDelay = false;               // 발사 딜레이 체크
 
-    int m_Max = 100;                         // 풀링 최대치
+    int m_Max = 10;                         // 풀링 최대치
     int m_CurCount = 0;                     // 현재 총알 번호
 
     int m_TracerPassLayer;                  // 무시할 충돌 레이어
-    float m_Reaction = 0.015f;
+    float m_Reaction = 0.015f;              // 반동 수치
 
-    Quaternion m_ResetAngle;
-    Quaternion m_ReactionAngle;
+    Quaternion m_ResetAngle;                // 반동 초기화
+    Quaternion m_ReactionAngle;             // 반동 각도
 
-    bool isFireDelay = false;
+    RaycastHit m_Hit;
 
     void Start()
     {
@@ -42,11 +43,13 @@ public class CWeaponManager : MonoBehaviour {
             _Bullet.transform.parent = this.transform;
             _Bullet.SetActive(false);
 
+            // 총알 리스트에 넣어 둠
             m_BulletList.Add(_Bullet);
         }
+        // 레이캐스트가 무시할 레이어 
         m_TracerPassLayer = (-1) - ((1 << LayerMask.NameToLayer("Tracer")) | (1 << LayerMask.NameToLayer("RayFloor")));
 
-        // 기본 엥글
+        // 기본 엥글 저장
         m_ResetAngle = transform.localRotation;
         m_ReactionAngle = m_ResetAngle;
     }
@@ -56,48 +59,35 @@ public class CWeaponManager : MonoBehaviour {
         // 캐릭터가 공격 상태면 실행
         if (m_Manager.State.isFire)
         {
+            // 공격 딜레이 체크
             if (!isFireDelay)
             {
-                StartCoroutine(FireDelay());
-                m_ShutEffect.transform.localScale = new Vector3(6f, 6f, 6f);
-
-                transform.localRotation = m_ReactionAngle;
-
-                MakeHitTarget();
-                Attack();
-
-                transform.localRotation = m_ResetAngle;
+                StartCoroutine(FireDelay());                    // 딜레이 생성
+                transform.localRotation = m_ReactionAngle;      // 반동
+                m_ShutEffect.Play();                            // 이펙트 켜기
+                MakeHitTarget();                                // 레이캐스트 쏘기
+                Attack();                                       // 공격
+                transform.localRotation = m_ResetAngle;         // 반동 리셋
             }
         }
         else
         {
-            m_ShutEffect.transform.localScale = new Vector3(0f, 0f, 0f);
+            m_ShutEffect.Clear();   // 이펙트 클리어
+            m_ShutEffect.Stop();    // 이펙트 종료
         }
     }
 
+    // 공격 딜레이
     IEnumerator FireDelay()
     {
         isFireDelay = true;
         yield return new WaitForSeconds(0.1f);
         isFireDelay = false;
     }
-
-    RaycastHit m_Hit;
+    
     public void MakeHitTarget()
     {
         Physics.Raycast(transform.position, transform.forward, out m_Hit, 1000f, m_TracerPassLayer);
-    }
-
-
-    int _damage;
-
-    public int _Damage()
-    {
-        return _damage;
-    }
-
-    public void SetReset() {
-        _damage = 0;
     }
 
     void Attack()
@@ -106,23 +96,12 @@ public class CWeaponManager : MonoBehaviour {
         {
             if (m_Hit.collider.tag == "Player")
             {
-                
-                //m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
-                //Debug.Log(m_Hit.collider.gameObject.GetComponent<CPlayerManager>().Data.Health);
-
-                Debug.Log(m_Hit.collider.gameObject.GetComponent<CPlayerManager>().netId);
-
-                m_Hit.collider.gameObject.GetComponent<CPlayerManager>().TakeDamage(10, m_Hit.point);
-
-                if (m_Manager.active > 0)
-                {
-                    SpawnDecal(m_Hit, m_Mark[1], m_Manager.hit);
-                }
-
+                m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
+                SpawnDecal(m_Hit, m_Mark[1]);
             }
             else
             {
-                SpawnDecal(m_Hit, m_Mark[4], m_Manager.hit);
+                SpawnDecal(m_Hit, m_Mark[4]);
             }
         }
 
@@ -163,9 +142,9 @@ public class CWeaponManager : MonoBehaviour {
         m_Laser.SetActive(true);
     }
 
-    void SpawnDecal(RaycastHit _hit, GameObject prefab, Vector3 _point)
+    void SpawnDecal(RaycastHit _hit, GameObject prefab)
     {
-        GameObject spawnedDecal = Instantiate(prefab, _point, Quaternion.LookRotation(_hit.normal)) as GameObject;
+        GameObject spawnedDecal = Instantiate(prefab, _hit.point, Quaternion.LookRotation(_hit.normal)) as GameObject;
         spawnedDecal.transform.SetParent(_hit.transform);
     }
 }

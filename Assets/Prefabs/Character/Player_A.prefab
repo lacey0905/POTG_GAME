@@ -978,7 +978,7 @@ Transform:
   m_GameObject: {fileID: 1146891502929964}
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0.019}
-  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 6, y: 6, z: 6}
   m_Children: []
   m_Father: {fileID: 4618612455683164}
   m_RootOrder: 0
@@ -1083,6 +1083,9 @@ MonoBehaviour:
   m_Weapon: {fileID: 114796055303449646}
   hp: 100
   currentHealth: 100
+  active: 0
+  hit: {x: 0, y: 0, z: 0}
+  time: 100
 --- !u!114 &114148427919399606
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1177,7 +1180,7 @@ MonoBehaviour:
   - {fileID: 1000010844420130, guid: 4edabb1c0dde62743b137378c7d22980, type: 2}
   m_BulletList: []
   m_Tracer: {fileID: 1407674743483348, guid: 7527664edf81e6642817409bd694cf8a, type: 2}
-  m_ShutEffect: {fileID: 1146891502929964}
+  m_ShutEffect: {fileID: 198713403605422944}
   m_Laser: {fileID: 1280896692036956}
   m_Manager: {fileID: 0}
 --- !u!114 &114911889502586918
@@ -1393,8 +1396,8 @@ ParticleSystem:
   simulationSpeed: 1
   stopAction: 0
   looping: 1
-  prewarm: 0
-  playOnAwake: 1
+  prewarm: 1
+  playOnAwake: 0
   useUnscaledTime: 0
   autoRandomSeed: 1
   useRigidbodyForVelocity: 1
@@ -1408,13 +1411,13 @@ ParticleSystem:
       m_Curve:
       - serializedVersion: 2
         time: 0
-        value: 1
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 0
       - serializedVersion: 2
         time: 1
-        value: 1
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -1442,7 +1445,7 @@ ParticleSystem:
   moveWithTransform: 0
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 0
-  randomSeed: -1810664788
+  randomSeed: 1737634452
   InitialModule:
     serializedVersion: 3
     enabled: 1
