@@ -21,9 +21,14 @@ public struct CPlayerState
 public class CPlayerManager : NetworkBehaviour {
 
     public CPlayerState State;
-
     public Transform m_FollowTag;
     public CWeaponManager m_Weapon;
+
+    public GameObject m_CharacterBlue;
+    public GameObject m_CharacterRed;
+
+    public Avatar m_Blue;
+    public Avatar m_Red;
 
     CCameraManager m_Camera;
     CMakeRay m_Ray;
@@ -42,12 +47,33 @@ public class CPlayerManager : NetworkBehaviour {
         SyncHealth = m_MaxHealth;
     }
 
+    void SetCharacter()
+    {
+        if(SyncTeam == "Blue")
+        {
+            Quaternion newRotation = Quaternion.LookRotation(transform.forward);
+            GameObject Character = Instantiate(m_CharacterBlue, transform.position, newRotation) as GameObject;
+            Character.transform.parent = transform;
+            GetComponent<Animator>().avatar = m_Blue;
+        }
+        else if (SyncTeam == "Red")
+        {
+            Quaternion newRotation = Quaternion.LookRotation(transform.forward);
+            GameObject Character = Instantiate(m_CharacterRed, transform.position, newRotation) as GameObject;
+            Character.transform.parent = transform;
+            GetComponent<Animator>().avatar = m_Red;
+        }
+    }
+
     void Start()
     {
         if (isLocalPlayer)
         {
             // 자신이 처음 스폰 되거나, 리스폰 되었을 때 카메라가 자신을 따라가게 함
             CGameManager.m_CameraTargetPlayer = this;
+
+            // 레이저를 활성화 함
+            m_Weapon.SetLaser();
         }
 
         // 캐릭터가 생성되면 게임 매니저의 플레이어 리스트에 넣음
@@ -55,8 +81,9 @@ public class CPlayerManager : NetworkBehaviour {
 
         m_Weapon.Owner(this);
 
-        // 레이저를 활성화 함
-        m_Weapon.SetLaser();
+        Spawn();
+        SetCharacter();
+
     }
 
     // 서버->클라 방향으로 데이터를 동기화함
@@ -73,6 +100,12 @@ public class CPlayerManager : NetworkBehaviour {
     [SyncVar]
     bool isDead = false;
 
+    [SyncVar]
+    public int SyncSpawn;
+
+    [SyncVar]
+    public bool m_Spawn = false;
+
     public void SetDecreaseHealth(int _damage)
     {
         if (!isServer) return;
@@ -84,8 +117,26 @@ public class CPlayerManager : NetworkBehaviour {
         return SyncTeam;
     }
 
+    IEnumerator SpawnCheck()
+    {
+        yield return new WaitForSeconds(1.0f);
+        m_Spawn = false;
+    }
+
     void FixedUpdate()
     {
+        if (m_Spawn)
+        {
+            int _index = SyncSpawn - 1;
+            if (_index < 0) _index = 0;
+
+            CPlayerManager _temp = CGameManager.m_NetworkPlayerList[_index];
+            if (_temp.SyncSpawn == 0 || _temp.m_Spawn == false)
+            {
+                transform.position = CGameManager.m_SpawnList[SyncSpawn].transform.position;
+                StartCoroutine(SpawnCheck());
+            }
+        }
 
         if (SyncHealth <= 0)
         {
@@ -162,10 +213,24 @@ public class CPlayerManager : NetworkBehaviour {
         State = new CPlayerState();
         SyncPlayerName = _name;
         SyncTeam = _team;
+    }
 
-        Debug.Log(_name);
-        Debug.Log(_team);
+    // 캐릭터 스폰
+    public void Spawn()
+    {
+        if (!isServer) return;
 
+        for (int i=0; i < CGameManager.m_NetworkPlayerList.Count; i++)
+        {
+            CGameManager.m_NetworkPlayerList[i].SyncSpawn = i;
+            CGameManager.m_NetworkPlayerList[i].m_Spawn = true;
+        }
+    }
+
+    IEnumerator SpawnReset(CSpawnManager _spawn)
+    {
+        yield return new WaitForSeconds(5.0f);
+        _spawn.ResetSpawn();
     }
 
     [Command]

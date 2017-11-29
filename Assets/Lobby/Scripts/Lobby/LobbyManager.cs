@@ -11,10 +11,6 @@ namespace Prototype.NetworkLobby
     public class LobbyManager : NetworkLobbyManager 
     {
 
-        // ƒ≥∏Ø≈Õ «¡∏Æ∆’
-        public GameObject m_CharacterBlue;
-        public GameObject m_CharacterRed;
-
         static short MsgKicked = MsgType.Highest + 1;
 
         static public LobbyManager s_Singleton;
@@ -196,7 +192,6 @@ namespace Prototype.NetworkLobby
             {
                 StopHost();
             }
-
             
             ChangeTo(mainMenuPanel);
         }
@@ -281,7 +276,6 @@ namespace Prototype.NetworkLobby
             LobbyPlayer newPlayer = obj.GetComponent<LobbyPlayer>();
             newPlayer.ToggleJoinButton(numPlayers + 1 >= minPlayers);
 
-
             for (int i = 0; i < lobbySlots.Length; ++i)
             {
                 LobbyPlayer p = lobbySlots[i] as LobbyPlayer;
@@ -322,10 +316,9 @@ namespace Prototype.NetworkLobby
                     p.ToggleJoinButton(numPlayers >= minPlayers);
                 }
             }
-
         }
         
-        public string Team;
+        public string Team = "Blue";
 
         public override bool OnLobbyServerSceneLoadedForPlayer(GameObject lobbyPlayer, GameObject gamePlayer)
         {
@@ -337,6 +330,19 @@ namespace Prototype.NetworkLobby
 
             LobbyPlayer Lobby = lobbyPlayer.GetComponent<LobbyPlayer>();
             CPlayerManager Player = gamePlayer.GetComponent<CPlayerManager>();
+
+            string _TeamColor = Lobby.playerColor.ToString();
+
+            // ∫Ì∑Á∆¿
+            if (_TeamColor == "RGBA(0.000, 0.000, 1.000, 1.000)")
+            {
+                Team = "Blue";
+            }
+            // ∑πµÂ∆¿
+            else if (_TeamColor == "RGBA(1.000, 0.000, 1.000, 1.000)")
+            {
+                Team = "Red";
+            }
 
             Player.Setup(Lobby.playerName, Team);
 
