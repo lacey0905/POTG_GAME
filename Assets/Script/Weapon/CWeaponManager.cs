@@ -96,7 +96,12 @@ public class CWeaponManager : MonoBehaviour {
         {
             if (m_Hit.collider.tag == "Player")
             {
-                m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
+                CPlayerManager _hit = m_Hit.collider.gameObject.GetComponent<CPlayerManager>();
+
+                if (_hit.GetTeam() != this.m_Manager.GetTeam())
+                {
+                    m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
+                }
                 SpawnDecal(m_Hit, m_Mark[1]);
             }
             else

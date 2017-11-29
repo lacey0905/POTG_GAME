@@ -3,24 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public struct CPlayerData
-{
-    public int index;
-    public int Score;
-    public int Health;
-    public int MaxHealth;
-    public string Name;
-
-    public void DataSetup(int _score, int _health, string _name)
-    {
-        this.index = 0;
-        this.Score = _score;
-        this.Health = _health;
-        this.MaxHealth = 100;
-        this.Name = _name;
-    }
-}
-
 public struct CPlayerState
 {
     // 캐릭터 상태 값
@@ -33,14 +15,11 @@ public struct CPlayerState
         isFire = _fire;
         isRun = _run;
         isIdle = _idle;
-
     }
 }
 
-
 public class CPlayerManager : NetworkBehaviour {
 
-    public CPlayerData Data;                // 캐릭터 정보
     public CPlayerState State;
 
     public Transform m_FollowTag;
@@ -51,11 +30,16 @@ public class CPlayerManager : NetworkBehaviour {
     CPlayerControl m_Control;
     CPlayerAnim m_AnimControl;
 
+    int m_MaxHealth = 100;          // 최대 체력
+
     void Awake()
     {
         m_Control = GetComponent<CPlayerControl>();
         m_AnimControl = GetComponent<CPlayerAnim>();
         m_Ray = GetComponent<CMakeRay>();
+
+        // 최대 체력으로 시작
+        SyncHealth = m_MaxHealth;
     }
 
     void Start()
@@ -73,17 +57,18 @@ public class CPlayerManager : NetworkBehaviour {
 
         // 레이저를 활성화 함
         m_Weapon.SetLaser();
-
-        Setup(0, 100, "Player");
-
-        SyncHealth = Data.MaxHealth;
-
     }
 
     // 서버->클라 방향으로 데이터를 동기화함
     // 데이터가 서버 기준으로 동기화 됨
     [SyncVar]
     int SyncHealth;
+
+    [SyncVar]
+    string SyncTeam;
+
+    [SyncVar]
+    string SyncPlayerName;
 
     [SyncVar]
     bool isDead = false;
@@ -94,8 +79,14 @@ public class CPlayerManager : NetworkBehaviour {
         SyncHealth -= _damage;
     }
 
+    public string GetTeam()
+    {
+        return SyncTeam;
+    }
+
     void FixedUpdate()
     {
+
         if (SyncHealth <= 0)
         {
             SyncHealth = 0;
@@ -165,17 +156,16 @@ public class CPlayerManager : NetworkBehaviour {
         m_Control.Turn(_ray);
     }
 
-    public void Setup(int _score, int _health, string _name)
+    // 캐릭터 셋업
+    public void Setup(string _name, string _team)
     {
         State = new CPlayerState();
-        Data = new CPlayerData();
-        Data.DataSetup(_score, _health, _name);
-    }
+        SyncPlayerName = _name;
+        SyncTeam = _team;
 
-    IEnumerator DataSync(CPlayerData _data)
-    {
-        yield return new WaitForSeconds(1f);
-        Data = _data;
+        Debug.Log(_name);
+        Debug.Log(_team);
+
     }
 
     [Command]

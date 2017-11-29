@@ -10,6 +10,11 @@ namespace Prototype.NetworkLobby
 {
     public class LobbyManager : NetworkLobbyManager 
     {
+
+        // 캐릭터 프리팹
+        public GameObject m_CharacterBlue;
+        public GameObject m_CharacterRed;
+
         static short MsgKicked = MsgType.Highest + 1;
 
         static public LobbyManager s_Singleton;
@@ -220,9 +225,6 @@ namespace Prototype.NetworkLobby
             conn.Send(MsgKicked, new KickMsg());
         }
 
-
-
-
         public void KickedMessageHandler(NetworkMessage netMsg)
         {
             infoPanel.Display("Kicked by Server", "Close", null);
@@ -322,6 +324,8 @@ namespace Prototype.NetworkLobby
             }
 
         }
+        
+        public string Team;
 
         public override bool OnLobbyServerSceneLoadedForPlayer(GameObject lobbyPlayer, GameObject gamePlayer)
         {
@@ -330,6 +334,11 @@ namespace Prototype.NetworkLobby
 
             if (_lobbyHooks)
                 _lobbyHooks.OnLobbyServerSceneLoadedForPlayer(this, lobbyPlayer, gamePlayer);
+
+            LobbyPlayer Lobby = lobbyPlayer.GetComponent<LobbyPlayer>();
+            CPlayerManager Player = gamePlayer.GetComponent<CPlayerManager>();
+
+            Player.Setup(Lobby.playerName, Team);
 
             return true;
         }
