@@ -11,7 +11,7 @@ namespace Prototype.NetworkLobby
     //Any LobbyHook can then grab it and pass those value to the game player prefab (see the Pong Example in the Samples Scenes)
     public class LobbyPlayer : NetworkLobbyPlayer
     {
-        static Color[] Colors = new Color [] { Color.magenta, Color.blue, Color.magenta, Color.blue };
+        static Color[] Colors = new Color [] { Color.magenta, Color.blue, Color.magenta, Color.blue, Color.magenta, Color.blue, Color.magenta, Color.blue };
         //used on server to avoid assigning the same color to two player
         static List<int> _colorInUse = new List<int>();
 
@@ -193,25 +193,6 @@ namespace Prototype.NetworkLobby
         {
             playerColor = newColor;
             colorButton.GetComponent<Image>().color = newColor;
-
-            LobbyManager _lobby = GameObject.Find("LobbyManager").GetComponent<LobbyManager>();
-            string _TeamColor = playerColor.ToString();
-
-            // ∞‘¿” «¡∏Æ∆’ √ ±‚»≠
-            _lobby.gamePlayerPrefab = null;
-
-            // ∫Ì∑Á∆¿
-            if (_TeamColor == "RGBA(0.000, 0.000, 1.000, 1.000)")
-            {
-                _lobby.gamePlayerPrefab = _lobby.m_CharacterBlue;
-                _lobby.Team = "Blue";
-            }
-            // ∑πµÂ∆¿
-            else if (_TeamColor == "RGBA(1.000, 0.000, 1.000, 1.000)")
-            {
-                _lobby.gamePlayerPrefab = _lobby.m_CharacterRed;
-                _lobby.Team = "Red";
-            }
         }
 
         //===== UI Handler
