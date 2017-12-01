@@ -6,9 +6,13 @@ using UnityEngine.Networking;
 public class CNetworkManager : NetworkBehaviour {
 
 
-    private void Update()
+    void Update()
     {
-        
+    }
+
+    void CreatePlayer()
+    {
+
     }
 
 }

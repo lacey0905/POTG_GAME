@@ -6,6 +6,8 @@ using UnityEngine.Networking;
 
 public class CGameManager : NetworkBehaviour {
 
+    public static CGameManager s_Manager;
+
     // 네트워크 플레이어 리스트
     public static List<CPlayerManager> m_NetworkPlayerList = new List<CPlayerManager>();
 
@@ -15,16 +17,25 @@ public class CGameManager : NetworkBehaviour {
     // 카메라 매니저
     public static CCameraManager m_CameraManager;
 
-    public static List<CSpawnManager> m_SpawnList = new List<CSpawnManager>();
-    public List<CSpawnManager> m_SpawnObject = new List<CSpawnManager>();
+    // 로컬 플레이어
+    public static CPlayerManager m_LocalPlayer;
 
-    void Awake()
+    public List<GameObject> m_CharacterList = new List<GameObject>();
+    public List<Avatar> m_AvatarList = new List<Avatar>();
+    public List<Transform> m_SpawnPoint = new List<Transform>();
+
+
+    public void SetTeam(string _team)
     {
-        for (int i = 0; i < m_SpawnObject.Count; i++)
-        {
-            m_SpawnList.Add(m_SpawnObject[i]);
-        }
+        m_LocalPlayer.SetTeam(_team);
     }
+
+
+    void Start()
+    {
+        s_Manager = this;
+    }
+
     void FixedUpdate()
     {
         if (m_CameraTargetPlayer != null)

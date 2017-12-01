@@ -7,7 +7,7 @@ public class CPlayerAnim : MonoBehaviour {
     Animator m_Anim;
     CPlayerManager m_Manager;
 
-	void Awake ()
+    void Awake()
     {
         m_Anim = GetComponent<Animator>();
         m_Manager = GetComponent<CPlayerManager>();

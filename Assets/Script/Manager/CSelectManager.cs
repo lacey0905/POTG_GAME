@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CSelectManager : MonoBehaviour {
-    public string m_Select;
+    //public string m_Select;
 
-    void Update()
-    {
-        CPlayerManager m_Manager = GetComponentInParent<CPlayerManager>();
+    //void Update()
+    //{
+    //    CPlayerManager m_Manager = GetComponentInParent<CPlayerManager>();
 
-        string _temp = m_Manager.GetTeam();
+    //    string _temp = m_Manager.GetTeam();
 
-        if (_temp != m_Select && _temp != null)
-        {
-            Destroy(this.gameObject);
-        }
-    }
+    //    if (_temp != m_Select && _temp != null)
+    //    {
+    //        Destroy(this.gameObject);
+    //    }
+    //}
 }

@@ -14,10 +14,10 @@ public class CWeaponManager : MonoBehaviour {
     public List<GameObject> m_BulletList = new List<GameObject>();      // 총알 풀링 리스트
 
     public GameObject m_Tracer;             // 총알
-    public ParticleSystem m_ShutEffect;         // 총알 발사 이펙트
+    public ParticleSystem m_ShutEffect;     // 총알 발사 이펙트
     public GameObject m_Laser;              // 레이저
 
-    public CPlayerManager m_Manager;
+    public CPlayerManager m_Owner;
 
     float m_Delay = 0.1f;                   // 발사 딜레이
     bool isFireDelay = false;               // 발사 딜레이 체크
@@ -57,13 +57,13 @@ public class CWeaponManager : MonoBehaviour {
     void FixedUpdate()
     {
         // 캐릭터가 공격 상태면 실행
-        if (m_Manager.State.isFire)
+        if (m_Owner.State.isFire)
         {
             // 공격 딜레이 체크
             if (!isFireDelay)
             {
                 StartCoroutine(FireDelay());                    // 딜레이 생성
-                transform.localRotation = m_ReactionAngle;      // 반동
+                transform.localRotation = GetReaction();      // 반동
                 m_ShutEffect.Play();                            // 이펙트 켜기
                 MakeHitTarget();                                // 레이캐스트 쏘기
                 Attack();                                       // 공격
@@ -98,10 +98,10 @@ public class CWeaponManager : MonoBehaviour {
             {
                 CPlayerManager _hit = m_Hit.collider.gameObject.GetComponent<CPlayerManager>();
 
-                if (_hit.GetTeam() != this.m_Manager.GetTeam())
-                {
-                    m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
-                }
+                //if (_hit.GetTeam() != this.m_Manager.GetTeam())
+                //{
+                //    m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
+                //}
                 SpawnDecal(m_Hit, m_Mark[1]);
             }
             else
@@ -137,9 +137,9 @@ public class CWeaponManager : MonoBehaviour {
         m_ReactionAngle = _angle;
     }
 
-    public void Owner(CPlayerManager _manager)
+    public void Owner(CPlayerManager _owner)
     {
-        m_Manager = _manager;
+        m_Owner = _owner;
     }
 
     public void SetLaser()

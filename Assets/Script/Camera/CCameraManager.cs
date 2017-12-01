@@ -15,6 +15,9 @@ public class CCameraManager : MonoBehaviour {
     float rotX = 0.0f;                      // 회전 X값
     float rotY = 0.0f;                      // 회전 Y값
 
+    // 레이캐스트 충돌 평면
+    int m_iFloorMask;
+
     void Start()
     {
         // 카메라 회전 각도 저장
@@ -22,7 +25,27 @@ public class CCameraManager : MonoBehaviour {
         rotY = rot.y;
         rotX = rot.x;
 
+        m_iFloorMask = LayerMask.GetMask("RayFloor");
+
         CGameManager.m_CameraManager = this;
+    }
+
+    public Vector3 GetRayPoint()
+    {
+        Vector3 m_RayPoint = Vector3.zero;
+
+        // 마우스 포인터 받기
+        Ray camRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        // 충돌 확인
+        RaycastHit floorHit;
+
+        //바닥에 충돌하면 실행
+        if (Physics.Raycast(camRay, out floorHit, 100f, m_iFloorMask))
+        {
+            m_RayPoint = floorHit.point;
+        }
+        return m_RayPoint;
     }
 
     public void SetAimMode(Vector3 _rayPoint, Vector3 _targetPos)
