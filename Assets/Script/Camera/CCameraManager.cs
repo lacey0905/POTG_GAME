@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class CCameraManager : MonoBehaviour {
 
+    CGameManager m_Manager;
+
     public Transform m_Aim;
 
     public float m_fSmoothing = 10.0f;      // 따라다닐 때 부드러운 정도
@@ -26,8 +28,14 @@ public class CCameraManager : MonoBehaviour {
         rotX = rot.x;
 
         m_iFloorMask = LayerMask.GetMask("RayFloor");
+    }
 
-        CGameManager.m_CameraManager = this;
+    void Update()
+    {
+        if (m_Manager == null)
+        {
+            m_Manager = CGameManager.s_Manager;
+        }
     }
 
     public Vector3 GetRayPoint()

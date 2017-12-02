@@ -23,20 +23,21 @@ public class CPlayerManager : NetworkBehaviour {
     int m_maxHealth = 100;
 
     [SyncVar]
-    string SyncName;
-
-    [SyncVar]
-    string SyncTeam;
-
-    [SyncVar]
     int SyncHealth;
 
     [SyncVar]
     public int SyncSpawnIdx;
 
+    public string SyncTeam;
+    public string SyncName;
+
+    public CGameManager m_Manager;
     public CPlayerState State;                      // 상태 구조체
     public Transform m_FollowTag;                   // 카메라 태그
     public CWeaponManager m_Weapon;                 // 웨폰
+
+    public GameObject m_Blue;
+    public GameObject m_Red;
 
     CCameraManager  m_Camera;
     CPlayerControl  m_Control;                      // 컨트롤러
@@ -48,60 +49,26 @@ public class CPlayerManager : NetworkBehaviour {
         m_Control = GetComponent<CPlayerControl>();
         m_AnimControl = GetComponent<CPlayerAnim>();
     }
-    
-    void Start()
-    {
-        // 최대 체력으로 시작
-        SyncHealth = m_maxHealth;
 
-        // 플레이어가 생성되면 리스트에 저장
-        CGameManager.m_NetworkPlayerList.Add(this);
+    //public void SetSpawnPoint()
+    //{
+    //    if (isServer) {
+    //        for (int i = 0; i < CGameManager.m_NetworkPlayerList.Count; i++)
+    //        {
+    //            CGameManager.m_NetworkPlayerList[i].SyncSpawnIdx = i;
+    //        }
+    //    }
+    //    StartCoroutine(Spawn());
+    //}
 
-        if (isLocalPlayer)
-        {
-            CGameManager.m_LocalPlayer = this;
-
-            // 자신이 처음 스폰 되거나, 리스폰 되었을 때 카메라가 자신을 따라가게 함
-            CGameManager.m_CameraTargetPlayer = this;
-
-            // 레이저를 활성화 함
-            //m_Weapon.SetLaser();
-        }
-
-        m_Weapon.Owner(this);
-
-        SetSpawnPoint();
-    }
-
-    public void SetSpawnPoint()
-    {
-        if (isServer) {
-            for (int i = 0; i < CGameManager.m_NetworkPlayerList.Count; i++)
-            {
-                CGameManager.m_NetworkPlayerList[i].SyncSpawnIdx = i;
-            }
-        }
-        StartCoroutine(Spawn());
-    }
-
-    IEnumerator Spawn()
-    {
-        yield return new WaitForSeconds(1.0f);
-        transform.position = CGameManager.s_Manager.m_SpawnPoint[SyncSpawnIdx].transform.position;
-        blue.SetActive(true);
-        GetComponent<Rigidbody>().useGravity = true;
-        GetComponent<CapsuleCollider>().enabled = true;
-    }
-
-    public void SetSpawnPoint(int _idx)
-    {
-        SyncSpawnIdx = _idx;
-    }
-
-    public void SetTeam(string _team)
-    {
-        SyncTeam = _team;
-    }
+    //IEnumerator Spawn()
+    //{
+    //    yield return new WaitForSeconds(1.0f);
+    //    transform.position = CGameManager.s_Manager.m_SpawnPoint[SyncSpawnIdx].transform.position;
+    //    blue.SetActive(true);
+    //    GetComponent<Rigidbody>().useGravity = true;
+    //    GetComponent<CapsuleCollider>().enabled = true;
+    //}
 
     public void SetPlayerCharacter()
     {
@@ -121,8 +88,7 @@ public class CPlayerManager : NetworkBehaviour {
         //}
     }
 
-    public GameObject blue;
-    public GameObject red;
+    
 
     public void SetDecreaseHealth(int _damage)
     {
@@ -130,17 +96,29 @@ public class CPlayerManager : NetworkBehaviour {
         SyncHealth -= _damage;
     }
 
+    public void Setup()
+    {
+        m_Manager = CGameManager.s_Manager;
+
+        // 최대 체력으로 시작
+        SyncHealth = m_maxHealth;
+
+        // 플레이어가 생성되면 리스트에 저장
+        m_Manager.AddNetworkPlayer(this);
+        m_Weapon.Owner(this);
+        m_Camera = m_Manager.GetCameraManager();
+
+        if (isLocalPlayer)
+        {
+            m_Manager.SetCameraTarget(this);
+            m_Manager.SetLocalPlayer(this);
+            //m_Weapon.SetLaser();
+        }
+    }
+
     void FixedUpdate()
     {
-        //if (m_Manager == null)
-        //{
-        //    m_Manager = CGameManager.s_Manager;
-        //}
-        //else
-        //{
-        //    spawn = CGameManager.m_SpawnPoint[0];
-        //    transform.position = spawn.transform.position;
-        //}
+        if (m_Manager == null) Setup();
 
         if (!isLocalPlayer) return;
 
@@ -155,10 +133,6 @@ public class CPlayerManager : NetworkBehaviour {
             {
                 m_Camera.SetRotation(1);
             }
-        }
-        else
-        {
-            m_Camera = CGameManager.m_CameraManager;
         }
 
         // 이동 키 입력
@@ -181,22 +155,24 @@ public class CPlayerManager : NetworkBehaviour {
         State.SetState(isFire, isRun, isIdle);
        
         // 동기화
-        CmdSync(State);
+        CmdSync(State, m_Manager.getTeam());
     }
 
     [Command]
-    public void CmdSync(CPlayerState _state)
+    public void CmdSync(CPlayerState _state, string _team)
     {
         if (!isClient)
         {
             State = _state;
+            SyncTeam = _team;
         }
-        RpcSync(_state);
+        RpcSync(_state, _team);
     }
 
     [ClientRpc]
-    public void RpcSync(CPlayerState _state)
+    public void RpcSync(CPlayerState _state, string _team)
     {
         State = _state;
+        SyncTeam = _team;
     }
 }
