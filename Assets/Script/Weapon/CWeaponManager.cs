@@ -16,6 +16,8 @@ public class CWeaponManager : MonoBehaviour {
     public GameObject m_Tracer;             // 총알
     public ParticleSystem m_ShutEffect;     // 총알 발사 이펙트
     public GameObject m_Laser;              // 레이저
+    public AudioSource m_Sound;
+    public AudioSource m_Reload;
 
     public CPlayerManager m_Owner;
 
@@ -47,7 +49,7 @@ public class CWeaponManager : MonoBehaviour {
             m_BulletList.Add(_Bullet);
         }
         // 레이캐스트가 무시할 레이어 
-        m_TracerPassLayer = (-1) - ((1 << LayerMask.NameToLayer("Tracer")) | (1 << LayerMask.NameToLayer("RayFloor")));
+        m_TracerPassLayer = (-1) - ((1 << LayerMask.NameToLayer("Tracer")) | (1 << LayerMask.NameToLayer("RayFloor")) | (1 << LayerMask.NameToLayer("CenterPoint")));
 
         // 기본 엥글 저장
         m_ResetAngle = transform.localRotation;
@@ -59,22 +61,43 @@ public class CWeaponManager : MonoBehaviour {
         // 캐릭터가 공격 상태면 실행
         if (m_Owner.State.isFire)
         {
-            // 공격 딜레이 체크
-            if (!isFireDelay)
+            if (m_Owner.m_CurBullet > 0)
             {
-                StartCoroutine(FireDelay());                    // 딜레이 생성
-                transform.localRotation = GetReaction();      // 반동
-                m_ShutEffect.Play();                            // 이펙트 켜기
-                MakeHitTarget();                                // 레이캐스트 쏘기
-                Attack();                                       // 공격
-                transform.localRotation = m_ResetAngle;         // 반동 리셋
+                m_Sound.enabled = true;
+                // 공격 딜레이 체크
+                if (!isFireDelay)
+                {
+                    StartCoroutine(FireDelay());                    // 딜레이 생성
+                    transform.localRotation = GetReaction();        // 반동
+                    m_ShutEffect.Play();                            // 이펙트 켜기
+                    MakeHitTarget();                                // 레이캐스트 쏘기
+                    Attack();                                       // 공격
+                    transform.localRotation = m_ResetAngle;         // 반동 리셋
+                    m_Owner.SetCurBullet();                         // 총알 감소
+                }
+            }
+            else
+            {
+                StartCoroutine(Reload());
+                m_Sound.enabled = false;
+                m_ShutEffect.Clear();   // 이펙트 클리어
+                m_ShutEffect.Stop();    // 이펙트 종료
             }
         }
         else
         {
+            m_Sound.enabled = false;
             m_ShutEffect.Clear();   // 이펙트 클리어
             m_ShutEffect.Stop();    // 이펙트 종료
         }
+    }
+
+    IEnumerator Reload()
+    {
+        m_Reload.enabled = true;
+        yield return new WaitForSeconds(2.0f);
+        m_Reload.enabled = false;
+        m_Owner.ReLoad();
     }
 
     // 공격 딜레이
@@ -98,10 +121,13 @@ public class CWeaponManager : MonoBehaviour {
             {
                 CPlayerManager _hit = m_Hit.collider.gameObject.GetComponent<CPlayerManager>();
 
-                //if (_hit.GetTeam() != this.m_Manager.GetTeam())
-                //{
-                //    m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
-                //}
+                if (_hit.GetMyTeam() != this.m_Owner.GetMyTeam())
+                {
+
+                    Debug.Log("적 공격");
+
+                    m_Hit.collider.gameObject.GetComponent<CPlayerManager>().SetDecreaseHealth(10);
+                }
                 SpawnDecal(m_Hit, m_Mark[1]);
             }
             else

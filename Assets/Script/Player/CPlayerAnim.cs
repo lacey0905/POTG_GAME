@@ -13,6 +13,11 @@ public class CPlayerAnim : MonoBehaviour {
         m_Manager = GetComponent<CPlayerManager>();
     }
 
+    public void SetAvatar(Avatar _avata)
+    {
+        m_Anim.avatar = _avata;
+    }
+
     void FixedUpdate()
     {
         m_Anim.SetBool("isRun", m_Manager.State.isRun);

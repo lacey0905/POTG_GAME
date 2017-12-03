@@ -6,6 +6,7 @@ TagManager:
   tags:
   - object
   - RayFloor
+  - CenterPoint
   layers:
   - Default
   - TransparentFX
@@ -17,7 +18,7 @@ TagManager:
   - 
   - RayFloor
   - Tracer
-  - 
+  - CenterPoint
   - 
   - 
   - 

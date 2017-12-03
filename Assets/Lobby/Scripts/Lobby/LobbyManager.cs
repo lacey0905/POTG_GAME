@@ -332,6 +332,9 @@ namespace Prototype.NetworkLobby
             if (_lobbyHooks)
                 _lobbyHooks.OnLobbyServerSceneLoadedForPlayer(this, lobbyPlayer, gamePlayer);
 
+            string _name = lobbyPlayer.GetComponent<LobbyPlayer>().playerName;
+            gamePlayer.GetComponent<CPlayerManager>().SetPlayerName(_name);
+
             return true;
         }
 

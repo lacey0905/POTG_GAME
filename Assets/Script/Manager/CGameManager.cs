@@ -19,11 +19,17 @@ public class CGameManager : NetworkBehaviour {
     // 로컬 플레이어
     public CPlayerManager m_LocalPlayer;
 
+    public Canvas m_Canvas;
+
     public List<GameObject> m_CharacterList = new List<GameObject>();
     public List<Avatar> m_AvatarList = new List<Avatar>();
     public List<Transform> m_SpawnPoint = new List<Transform>();
 
     public string m_LcoalTeam;
+
+    int m_CenterCount = 0;
+    int m_TeamCount = 0;
+
 
     void Awake()
     {
@@ -35,6 +41,11 @@ public class CGameManager : NetworkBehaviour {
         if (m_CameraTargetPlayer != null)
         {
             m_CameraManager.SetPosition(m_CameraTargetPlayer.transform.position);
+        }
+
+        if (getTeam() != "")
+        {
+            m_Canvas.gameObject.SetActive(false);
         }
     }
 
@@ -71,6 +82,7 @@ public class CGameManager : NetworkBehaviour {
     public void SetTeam(string _team)
     {
         m_LcoalTeam = _team;
+        m_LocalPlayer.SetSpawn();
     }
 
 }

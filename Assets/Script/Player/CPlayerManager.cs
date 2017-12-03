@@ -29,8 +29,18 @@ public class CPlayerManager : NetworkBehaviour {
     public int SyncSpawnIdx;
 
     public string SyncTeam;
+
+    bool isSpawn = false;
+
+    [SyncVar]
     public string SyncName;
 
+    public int m_MaxBullet = 30;
+
+    [SyncVar]
+    public int m_CurBullet = 0;
+
+    public CPlayerUI m_PlayerUI;
     public CGameManager m_Manager;
     public CPlayerState State;                      // 상태 구조체
     public Transform m_FollowTag;                   // 카메라 태그
@@ -42,7 +52,12 @@ public class CPlayerManager : NetworkBehaviour {
     CCameraManager  m_Camera;
     CPlayerControl  m_Control;                      // 컨트롤러
     CPlayerAnim     m_AnimControl;                  // 애니메이션 컨트롤러
-    
+
+    void Start()
+    {
+        
+    }
+
     void Awake()
     {
         State = new CPlayerState();
@@ -50,45 +65,37 @@ public class CPlayerManager : NetworkBehaviour {
         m_AnimControl = GetComponent<CPlayerAnim>();
     }
 
-    //public void SetSpawnPoint()
-    //{
-    //    if (isServer) {
-    //        for (int i = 0; i < CGameManager.m_NetworkPlayerList.Count; i++)
-    //        {
-    //            CGameManager.m_NetworkPlayerList[i].SyncSpawnIdx = i;
-    //        }
-    //    }
-    //    StartCoroutine(Spawn());
-    //}
-
-    //IEnumerator Spawn()
-    //{
-    //    yield return new WaitForSeconds(1.0f);
-    //    transform.position = CGameManager.s_Manager.m_SpawnPoint[SyncSpawnIdx].transform.position;
-    //    blue.SetActive(true);
-    //    GetComponent<Rigidbody>().useGravity = true;
-    //    GetComponent<CapsuleCollider>().enabled = true;
-    //}
-
-    public void SetPlayerCharacter()
+    public void SetCurBullet()
     {
-        //if (SyncTeam == "Blue")
-        //{
-        //    Quaternion newRotation = Quaternion.LookRotation(transform.forward);
-        //    GameObject Character = Instantiate(m_CharacterBlue, transform.position, newRotation) as GameObject;
-        //    Character.transform.parent = transform;
-        //    GetComponent<Animator>().avatar = m_Blue;
-        //}
-        //else if (SyncTeam == "Red")
-        //{
-        //    Quaternion newRotation = Quaternion.LookRotation(transform.forward);
-        //    GameObject Character = Instantiate(m_CharacterRed, transform.position, newRotation) as GameObject;
-        //    Character.transform.parent = transform;
-        //    GetComponent<Animator>().avatar = m_Red;
-        //}
+        m_CurBullet--;
     }
 
-    
+    public void ReLoad()
+    {
+        m_CurBullet = m_MaxBullet;
+    }
+
+    public void SetSpawnPoint()
+    {
+        if (!isServer) return;
+
+        StartCoroutine(SetIndex());
+    }
+
+    IEnumerator SetIndex()
+    {
+        while (true)
+        {
+            if (m_Manager.m_NetworkPlayerList.Count > 0)
+            {
+                for (int i = 0; i < m_Manager.m_NetworkPlayerList.Count; i++)
+                {
+                    m_Manager.m_NetworkPlayerList[i].SyncSpawnIdx = i;
+                }
+            }
+            yield return new WaitForSeconds(1.0f);
+        }
+    }
 
     public void SetDecreaseHealth(int _damage)
     {
@@ -99,6 +106,11 @@ public class CPlayerManager : NetworkBehaviour {
     public void Setup()
     {
         m_Manager = CGameManager.s_Manager;
+
+        SetSpawnPoint();
+
+        // 최대 총알 갯수로 시작
+        m_CurBullet = m_MaxBullet;
 
         // 최대 체력으로 시작
         SyncHealth = m_maxHealth;
@@ -112,13 +124,63 @@ public class CPlayerManager : NetworkBehaviour {
         {
             m_Manager.SetCameraTarget(this);
             m_Manager.SetLocalPlayer(this);
-            //m_Weapon.SetLaser();
         }
+    }
+
+    public void SetSpawn()
+    {
+        isSpawn = true;
+    }
+
+    public void Spawn(string _team)
+    {
+        
+        transform.position = m_Manager.m_SpawnPoint[SyncSpawnIdx].transform.position;
+
+        this.GetComponent<CapsuleCollider>().enabled = true;
+        this.GetComponent<Rigidbody>().useGravity = true;
+        m_PlayerUI.gameObject.SetActive(true);
+
+        if (isLocalPlayer)
+        {
+            m_Weapon.SetLaser();
+        }
+
+        if (_team == "Blue")
+        {
+            m_Blue.SetActive(true);
+            m_AnimControl.SetAvatar(m_Manager.m_AvatarList[0]);
+            isSpawn = false;
+        }
+        else if (_team == "Red")
+        {
+            m_Red.SetActive(true);
+            m_AnimControl.SetAvatar(m_Manager.m_AvatarList[1]);
+            isSpawn = false;
+        }
+
+    }
+
+    public void SetPlayerName(string _name)
+    {
+        SyncName = _name;
     }
 
     void FixedUpdate()
     {
         if (m_Manager == null) Setup();
+
+        m_PlayerUI.SetUIHealth(SyncHealth);
+
+        if (SyncName != null)
+        {
+            m_PlayerUI.SetUIName(SyncName);
+        }
+        
+        if (SyncHealth <= 0)
+        {
+            this.gameObject.SetActive(false);
+        }
 
         if (!isLocalPlayer) return;
 
@@ -153,26 +215,68 @@ public class CPlayerManager : NetworkBehaviour {
 
         // 상태 변경
         State.SetState(isFire, isRun, isIdle);
-       
+
         // 동기화
-        CmdSync(State, m_Manager.getTeam());
+        CmdSync(State, m_Manager.getTeam(), isSpawn);
+        
+    }
+
+    public string GetMyTeam()
+    {
+        return SyncTeam;
+    }
+
+    [SyncVar]
+    public int m_ScoreBlue = 0;
+
+    [SyncVar]
+    public int m_ScoreRed = 0;
+
+    void OnTriggerEnter(Collider _col)
+    {
+        if (!isServer) return;
+
+        Debug.Log(_col.gameObject.tag);
+
+        if (_col.gameObject.tag == "CenterPoint")
+        { 
+            if (SyncTeam == "Blue")
+            {
+                m_ScoreBlue++;
+            }
+            else if (SyncTeam == "Red")
+            {
+                m_ScoreRed++;
+            }
+        }
     }
 
     [Command]
-    public void CmdSync(CPlayerState _state, string _team)
+    public void CmdSync(CPlayerState _state, string _team, bool _spawn)
     {
         if (!isClient)
         {
             State = _state;
             SyncTeam = _team;
+
+            if (_spawn)
+            {
+                Spawn(_team);
+            }
+
         }
-        RpcSync(_state, _team);
+        RpcSync(_state, _team, _spawn);
     }
 
     [ClientRpc]
-    public void RpcSync(CPlayerState _state, string _team)
+    public void RpcSync(CPlayerState _state, string _team, bool _spawn)
     {
         State = _state;
         SyncTeam = _team;
+
+        if (_spawn)
+        {
+            Spawn(_team);
+        }
     }
 }

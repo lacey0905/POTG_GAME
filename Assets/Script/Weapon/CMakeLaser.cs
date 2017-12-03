@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CMakeLaser : MonoBehaviour {
 
-
+    int m_PassLayer;
     LineRenderer m_Laser;
 
 	void Start () {}
@@ -12,6 +12,7 @@ public class CMakeLaser : MonoBehaviour {
     void Awake()
     {
         m_Laser = GetComponent<LineRenderer>();
+        m_PassLayer = (-1) - ((1 << LayerMask.NameToLayer("CenterPoint")));
     }
 	
 	void Update () {
@@ -19,7 +20,7 @@ public class CMakeLaser : MonoBehaviour {
 
         RaycastHit _hit;
 
-        if (Physics.Raycast(transform.position, transform.forward, out _hit))
+        if (Physics.Raycast(transform.position, transform.forward, out _hit, 100f, m_PassLayer))
         {
             if (_hit.collider)
             {
