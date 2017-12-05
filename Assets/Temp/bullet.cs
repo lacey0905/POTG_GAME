@@ -20,7 +20,6 @@ public class bullet : MonoBehaviour {
         Vector3.MoveTowards(transform.position, _hit, 30f * Time.smoothDeltaTime);
     }
 
-
     void Update()
     {
         //this.transform.localScale += new Vector3(0.0f, 0.0f, 0.3f);

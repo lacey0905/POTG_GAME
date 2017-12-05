@@ -15,6 +15,9 @@ public class CWeaponManager : MonoBehaviour {
 
     public GameObject m_Tracer;             // 총알
     public ParticleSystem m_ShutEffect;     // 총알 발사 이펙트
+
+    public GameObject m_Missile;
+
     public GameObject m_Laser;              // 레이저
     public AudioSource m_Sound;
     public AudioSource m_Reload;
@@ -113,6 +116,25 @@ public class CWeaponManager : MonoBehaviour {
         Physics.Raycast(transform.position, transform.forward, out m_Hit, 1000f, m_TracerPassLayer);
     }
 
+    bool isCollTime = false;
+
+    IEnumerator CoolTime()
+    {
+        yield return new WaitForSeconds(1.0f);
+        isCollTime = false;
+    }
+
+    public void Missile()
+    {
+        if (!isCollTime)
+        {
+            isCollTime = true;
+            StartCoroutine(CoolTime());
+            GameObject _missile = Instantiate(m_Missile, this.transform.position, Quaternion.identity) as GameObject;
+            _missile.transform.rotation = this.transform.rotation;
+        }
+    }
+
     void Attack()
     {
         if (m_Hit.collider)
@@ -168,9 +190,9 @@ public class CWeaponManager : MonoBehaviour {
         m_Owner = _owner;
     }
 
-    public void SetLaser()
+    public void SetLaser(bool _set)
     {
-        m_Laser.SetActive(true);
+        m_Laser.SetActive(_set);
     }
 
     void SpawnDecal(RaycastHit _hit, GameObject prefab)

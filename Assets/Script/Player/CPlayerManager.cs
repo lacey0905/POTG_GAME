@@ -23,10 +23,13 @@ public class CPlayerManager : NetworkBehaviour {
     int m_maxHealth = 100;
 
     [SyncVar]
-    int SyncHealth;
+    public int SyncHealth;
 
     [SyncVar]
-    public int SyncSpawnIdx;
+    bool Dead = false;
+
+    [SyncVar]
+    public int SyncSpawnIdx = 0;
 
     public string SyncTeam;
 
@@ -45,6 +48,8 @@ public class CPlayerManager : NetworkBehaviour {
     public CPlayerState State;                      // 상태 구조체
     public Transform m_FollowTag;                   // 카메라 태그
     public CWeaponManager m_Weapon;                 // 웨폰
+
+    public GameObject m_DieEffect;
 
     public GameObject m_Blue;
     public GameObject m_Red;
@@ -82,15 +87,18 @@ public class CPlayerManager : NetworkBehaviour {
         StartCoroutine(SetIndex());
     }
 
+    bool isIdx = true;
+
     IEnumerator SetIndex()
     {
-        while (true)
+        while (isIdx)
         {
             if (m_Manager.m_NetworkPlayerList.Count > 0)
             {
                 for (int i = 0; i < m_Manager.m_NetworkPlayerList.Count; i++)
                 {
                     m_Manager.m_NetworkPlayerList[i].SyncSpawnIdx = i;
+                    isIdx = false;
                 }
             }
             yield return new WaitForSeconds(1.0f);
@@ -100,12 +108,56 @@ public class CPlayerManager : NetworkBehaviour {
     public void SetDecreaseHealth(int _damage)
     {
         if (!isServer) return;
+        
         SyncHealth -= _damage;
+        if (SyncHealth <= 0)
+        {
+            SyncHealth = 0;
+        }
     }
+
+    public void SetHeal(int _heal)
+    {
+        if (!isServer) return;
+
+        SyncHealth += _heal;
+        if (SyncHealth >= 100)
+        {
+            SyncHealth = 100;
+        }
+    }
+
+    bool isMissile = false;
+
+    public void MissileDamage(int _damage)
+    {
+        if (!isMissile)
+        {
+            isMissile = true;
+            StartCoroutine(MissileReset());
+
+            if (!isServer) return;
+
+            SyncHealth -= _damage;
+
+            Debug.Log(_damage);
+        }
+    }
+
+    IEnumerator MissileReset()
+    {
+        yield return new WaitForSeconds(2.0f);
+        isMissile = false;
+    }
+
+
 
     public void Setup()
     {
         m_Manager = CGameManager.s_Manager;
+
+        // 플레이어가 생성되면 리스트에 저장
+        m_Manager.AddNetworkPlayer(this);
 
         SetSpawnPoint();
 
@@ -115,8 +167,7 @@ public class CPlayerManager : NetworkBehaviour {
         // 최대 체력으로 시작
         SyncHealth = m_maxHealth;
 
-        // 플레이어가 생성되면 리스트에 저장
-        m_Manager.AddNetworkPlayer(this);
+        
         m_Weapon.Owner(this);
         m_Camera = m_Manager.GetCameraManager();
 
@@ -130,11 +181,25 @@ public class CPlayerManager : NetworkBehaviour {
     public void SetSpawn()
     {
         isSpawn = true;
+        StartCoroutine(SetAddSpawn());
     }
+
+    IEnumerator SetAddSpawn()
+    {
+        while (!isSpawn)
+        {
+            isSpawn = true;
+            yield return new WaitForSeconds(1.0f);
+        }
+        StopCoroutine(SetAddSpawn());
+    }
+
 
     public void Spawn(string _team)
     {
-        
+
+        this.GetComponent<Rigidbody>().velocity = new Vector3(0, 0, 0);
+
         transform.position = m_Manager.m_SpawnPoint[SyncSpawnIdx].transform.position;
 
         this.GetComponent<CapsuleCollider>().enabled = true;
@@ -143,7 +208,7 @@ public class CPlayerManager : NetworkBehaviour {
 
         if (isLocalPlayer)
         {
-            m_Weapon.SetLaser();
+            m_Weapon.SetLaser(true);
         }
 
         if (_team == "Blue")
@@ -158,7 +223,20 @@ public class CPlayerManager : NetworkBehaviour {
             m_AnimControl.SetAvatar(m_Manager.m_AvatarList[1]);
             isSpawn = false;
         }
+    }
+    
+    bool isStop = true;
 
+    IEnumerator ReSpawn()
+    {
+        m_Blue.SetActive(false);
+        m_Red.SetActive(false);
+        this.GetComponent<CapsuleCollider>().enabled = false;
+        this.GetComponent<Rigidbody>().useGravity = false;
+        m_Weapon.SetLaser(false);
+        yield return new WaitForSeconds(5.0f);
+        Spawn(GetMyTeam());
+        isStop = true;
     }
 
     public void SetPlayerName(string _name)
@@ -176,10 +254,20 @@ public class CPlayerManager : NetworkBehaviour {
         {
             m_PlayerUI.SetUIName(SyncName);
         }
-        
+
         if (SyncHealth <= 0)
         {
             this.gameObject.SetActive(false);
+         }
+
+        if (Dead == true)
+        {
+
+            //isStop = false;
+            //SyncHealth = m_maxHealth;
+            //Dead = false;
+            //GameObject _die = Instantiate(m_DieEffect, this.transform.position, Quaternion.identity) as GameObject;
+            //StartCoroutine(ReSpawn());
         }
 
         if (!isLocalPlayer) return;
@@ -197,24 +285,32 @@ public class CPlayerManager : NetworkBehaviour {
             }
         }
 
-        // 이동 키 입력
-        float h = Input.GetAxisRaw("Horizontal");
-        float v = Input.GetAxisRaw("Vertical");
+        if(isStop)
+        { 
+            // 이동 키 입력
+            float h = Input.GetAxisRaw("Horizontal");
+            float v = Input.GetAxisRaw("Vertical");
 
-        m_Control.Move(h, v);
-        m_Control.Turn(m_Camera.GetRayPoint());
+            m_Control.Move(h, v);
+            m_Control.Turn(m_Camera.GetRayPoint());
 
-        // 이동 상태 변환
-        bool isRun = h != 0f || v != 0f;
+            // 이동 상태 변환
+            bool isRun = h != 0f || v != 0f;
 
-        // 스텐드 상태
-        bool isIdle = h == 0f && v == 0f;
+            // 스텐드 상태
+            bool isIdle = h == 0f && v == 0f;
 
-        // 공격 상태 변환
-        bool isFire = Input.GetMouseButton(0);
+            // 공격 상태 변환
+            bool isFire = Input.GetMouseButton(0);
+        
+            // 상태 변경
+            State.SetState(isFire, isRun, isIdle);
+        }
 
-        // 상태 변경
-        State.SetState(isFire, isRun, isIdle);
+        if (Input.GetMouseButton(1))
+        {
+            m_Weapon.Missile();
+        }
 
         // 동기화
         CmdSync(State, m_Manager.getTeam(), isSpawn);
@@ -226,30 +322,7 @@ public class CPlayerManager : NetworkBehaviour {
         return SyncTeam;
     }
 
-    [SyncVar]
-    public int m_ScoreBlue = 0;
 
-    [SyncVar]
-    public int m_ScoreRed = 0;
-
-    void OnTriggerEnter(Collider _col)
-    {
-        if (!isServer) return;
-
-        Debug.Log(_col.gameObject.tag);
-
-        if (_col.gameObject.tag == "CenterPoint")
-        { 
-            if (SyncTeam == "Blue")
-            {
-                m_ScoreBlue++;
-            }
-            else if (SyncTeam == "Red")
-            {
-                m_ScoreRed++;
-            }
-        }
-    }
 
     [Command]
     public void CmdSync(CPlayerState _state, string _team, bool _spawn)
@@ -261,6 +334,7 @@ public class CPlayerManager : NetworkBehaviour {
 
             if (_spawn)
             {
+                isSpawn = _spawn;
                 Spawn(_team);
             }
 
@@ -276,6 +350,7 @@ public class CPlayerManager : NetworkBehaviour {
 
         if (_spawn)
         {
+            isSpawn = _spawn;
             Spawn(_team);
         }
     }

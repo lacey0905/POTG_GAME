@@ -19,17 +19,26 @@ public class CGameManager : NetworkBehaviour {
     // 로컬 플레이어
     public CPlayerManager m_LocalPlayer;
 
-    public Canvas m_Canvas;
-
     public List<GameObject> m_CharacterList = new List<GameObject>();
     public List<Avatar> m_AvatarList = new List<Avatar>();
     public List<Transform> m_SpawnPoint = new List<Transform>();
 
     public string m_LcoalTeam;
 
-    int m_CenterCount = 0;
-    int m_TeamCount = 0;
+    [SyncVar]
+    public int m_BlueCount = 0;
 
+    [SyncVar]
+    public int m_RedCount = 0;
+
+    public Text UIBlueScore;
+    public Text UIRedScore;
+    public Button _blue;
+    public Button _red;
+    public Text UIWin;
+
+    [SyncVar]
+    public int num = 0;
 
     void Awake()
     {
@@ -38,6 +47,23 @@ public class CGameManager : NetworkBehaviour {
 
     void FixedUpdate()
     {
+
+        UIBlueScore.text = m_BlueCount.ToString();
+        UIRedScore.text = m_RedCount.ToString();
+
+        if (m_BlueCount >= 100)
+        {
+            UIWin.gameObject.SetActive(true);
+            UIWin.text = "Blue Win";
+
+        }
+        else if(m_RedCount >= 100)
+        {
+            UIWin.gameObject.SetActive(true);
+            UIWin.text = "Red Win";
+        }
+
+
         if (m_CameraTargetPlayer != null)
         {
             m_CameraManager.SetPosition(m_CameraTargetPlayer.transform.position);
@@ -45,7 +71,8 @@ public class CGameManager : NetworkBehaviour {
 
         if (getTeam() != "")
         {
-            m_Canvas.gameObject.SetActive(false);
+            _blue.gameObject.SetActive(false);
+            _red.gameObject.SetActive(false);
         }
     }
 
